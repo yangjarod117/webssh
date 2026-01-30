@@ -1,6 +1,6 @@
 import { createReadStream, createWriteStream } from 'fs'
 import { pipeline } from 'stream/promises'
-import { sshManager } from './ssh-manager'
+import { sshManager } from './ssh-manager.js'
 
 /**
  * 传输进度回调

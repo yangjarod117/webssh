@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express'
-import type { ApiError } from '../types'
+import type { ApiError } from '../types/index.js'
 
 /**
  * 错误代码映射

@@ -1,8 +1,8 @@
 import { Router, Request, Response, NextFunction } from 'express'
 import multer from 'multer'
-import { sftpManager } from '../services/sftp-manager'
-import { fileTransferManager } from '../services/file-transfer'
-import type { ApiError } from '../types'
+import { sftpManager } from '../services/sftp-manager.js'
+import { fileTransferManager } from '../services/file-transfer.js'
+import type { ApiError } from '../types/index.js'
 
 const router = Router()
 const upload = multer({ storage: multer.memoryStorage() })

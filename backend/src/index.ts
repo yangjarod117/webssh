@@ -2,11 +2,11 @@ import express from 'express'
 import cors from 'cors'
 import path from 'path'
 import { createServer } from 'http'
-import { WebSocketHandler } from './services/websocket-handler'
-import { sshManager } from './services/ssh-manager'
-import sessionsRouter from './routes/sessions'
-import filesRouter from './routes/files'
-import { errorHandler, notFoundHandler } from './middleware/error-handler'
+import { WebSocketHandler } from './services/websocket-handler.js'
+import { sshManager } from './services/ssh-manager.js'
+import sessionsRouter from './routes/sessions.js'
+import filesRouter from './routes/files.js'
+import { errorHandler, notFoundHandler } from './middleware/error-handler.js'
 
 const app = express()
 const PORT = process.env.PORT || 4000

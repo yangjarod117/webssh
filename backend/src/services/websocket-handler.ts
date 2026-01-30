@@ -1,7 +1,7 @@
 import { WebSocket, WebSocketServer } from 'ws'
 import type { Server } from 'http'
-import type { ClientMessage, ServerMessage } from '../types'
-import { sshManager } from './ssh-manager'
+import type { ClientMessage, ServerMessage } from '../types/index.js'
+import { sshManager } from './ssh-manager.js'
 
 interface WebSocketClient extends WebSocket {
   sessionId?: string

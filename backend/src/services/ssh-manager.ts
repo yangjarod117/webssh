@@ -1,6 +1,6 @@
 import { Client } from 'ssh2'
 import { v4 as uuidv4 } from 'uuid'
-import type { SSHSession, ConnectionConfig } from '../types'
+import type { SSHSession, ConnectionConfig } from '../types/index.js'
 
 /**
  * SSH 会话管理器

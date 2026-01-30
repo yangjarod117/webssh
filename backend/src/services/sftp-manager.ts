@@ -1,6 +1,6 @@
 import type { FileEntry, Stats } from 'ssh2'
-import type { FileStats } from '../types'
-import { sshManager } from './ssh-manager'
+import type { FileStats } from '../types/index.js'
+import { sshManager } from './ssh-manager.js'
 
 /**
  * SFTP 文件操作管理器

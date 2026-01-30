@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express'
-import { sshManager } from '../services/ssh-manager'
-import type { CreateSessionRequest, CreateSessionResponse, ApiError } from '../types'
+import { sshManager } from '../services/ssh-manager.js'
+import type { CreateSessionRequest, CreateSessionResponse, ApiError } from '../types/index.js'
 
 const router = Router()
 

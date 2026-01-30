@@ -1,0 +1,35 @@
+# 日志文件
+logs/*.log
+logs/**/*.log
+
+# SSL 私钥（安全考虑）
+ssl/*/privkey.pem
+ssl/*/*.key
+
+# 临时文件
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+
+# 编辑器文件
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 系统文件
+.env.local
+.env.*.local
+
+# Docker 相关
+.docker/
+
+# 备份文件
+*.bak
+*.backup
+
+# 缓存目录
+cache/
+tmp/

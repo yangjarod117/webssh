@@ -1,0 +1,15 @@
+services:
+  webssh:
+    image: yangjarod117/webssh:latest
+    container_name: webssh
+    ports:
+      - "4000:4000"
+    restart: unless-stopped
+    environment:
+      - TZ=Asia/Shanghai
+      - NODE_ENV=production
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

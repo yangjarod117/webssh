@@ -1,0 +1,92 @@
+import { Router, Request, Response, NextFunction } from 'express'
+import { sshManager } from '../services/ssh-manager'
+import type { CreateSessionRequest, CreateSessionResponse, ApiError } from '../types'
+
+const router = Router()
+
+/**
+ * 创建 SSH 会话
+ * POST /api/sessions
+ */
+router.post('/', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const config: CreateSessionRequest = req.body
+
+    // 验证必填字段
+    if (!config.host || !config.port || !config.username || !config.authType) {
+      const error: ApiError = {
+        code: 'INVALID_REQUEST',
+        message: '缺少必填字段',
+      }
+      return res.status(400).json(error)
+    }
+
+    // 验证认证信息
+    if (config.authType === 'password' && !config.password) {
+      const error: ApiError = {
+        code: 'INVALID_REQUEST',
+        message: '密码认证需要提供密码',
+      }
+      return res.status(400).json(error)
+    }
+
+    if (config.authType === 'key' && !config.privateKey) {
+      const error: ApiError = {
+        code: 'INVALID_REQUEST',
+        message: '密钥认证需要提供私钥',
+      }
+      return res.status(400).json(error)
+    }
+
+    const session = await sshManager.connect(config)
+
+    const response: CreateSessionResponse = {
+      sessionId: session.id,
+      status: session.status,
+    }
+
+    res.status(201).json(response)
+  } catch (err) {
+    next(err)
+  }
+})
+
+/**
+ * 获取会话状态
+ * GET /api/sessions/:id/status
+ */
+router.get('/:id/status', (req: Request, res: Response) => {
+  const { id } = req.params
+  const status = sshManager.getSessionStatus(id)
+
+  if (!status) {
+    const error: ApiError = {
+      code: 'SESSION_NOT_FOUND',
+      message: '会话不存在',
+    }
+    return res.status(404).json(error)
+  }
+
+  res.json({ sessionId: id, status })
+})
+
+/**
+ * 关闭 SSH 会话
+ * DELETE /api/sessions/:id
+ */
+router.delete('/:id', (req: Request, res: Response) => {
+  const { id } = req.params
+  const success = sshManager.disconnect(id)
+
+  if (!success) {
+    const error: ApiError = {
+      code: 'SESSION_NOT_FOUND',
+      message: '会话不存在或已关闭',
+    }
+    return res.status(404).json(error)
+  }
+
+  res.status(204).send()
+})
+
+export default router

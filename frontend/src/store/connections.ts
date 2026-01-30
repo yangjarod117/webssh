@@ -6,12 +6,14 @@ interface ConnectionsState {
   savedConnections: SavedConnection[]
   
   // Actions
-  saveConnection: (config: ConnectionConfig, name: string) => string
-  deleteConnection: (id: string) => void
+  saveConnection: (config: ConnectionConfig, name: string, saveCredentials?: boolean) => Promise<string>
+  deleteConnection: (id: string) => Promise<void>
   updateConnectionName: (id: string, name: string) => void
   updateConnection: (id: string, updates: Partial<Omit<SavedConnection, 'id' | 'createdAt'>>) => void
   updateLastUsed: (id: string) => void
   getConnection: (id: string) => SavedConnection | undefined
+  hasStoredCredentials: (id: string) => Promise<boolean>
+  getStoredCredentials: (id: string) => Promise<ConnectionConfig | null>
 }
 
 const STORAGE_KEY = 'webssh-connections'
@@ -31,11 +33,33 @@ export const useConnectionsStore = create<ConnectionsState>()(
     (set, get) => ({
       savedConnections: [],
       
-      saveConnection: (config: ConnectionConfig, name: string) => {
+      saveConnection: async (config: ConnectionConfig, name: string, saveCredentials = false) => {
         const id = generateId()
         const now = new Date()
         
-        // 创建保存的连接（不包含密码）
+        // 如果选择保存凭据，发送到后端加密存储
+        if (saveCredentials) {
+          try {
+            await fetch('/api/credentials', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                id,
+                host: config.host,
+                port: config.port,
+                username: config.username,
+                authType: config.authType,
+                password: config.password,
+                privateKey: config.privateKey,
+                passphrase: config.passphrase,
+              }),
+            })
+          } catch (err) {
+            console.error('Failed to save credentials:', err)
+          }
+        }
+        
+        // 创建保存的连接（前端不保存密码）
         const savedConnection: SavedConnection = {
           id,
           name,
@@ -43,6 +67,7 @@ export const useConnectionsStore = create<ConnectionsState>()(
           port: config.port,
           username: config.username,
           authType: config.authType,
+          hasStoredCredentials: saveCredentials,
           createdAt: now,
           lastUsedAt: now,
         }
@@ -54,7 +79,14 @@ export const useConnectionsStore = create<ConnectionsState>()(
         return id
       },
       
-      deleteConnection: (id: string) => {
+      deleteConnection: async (id: string) => {
+        // 同时删除后端存储的凭据
+        try {
+          await fetch(`/api/credentials/${id}`, { method: 'DELETE' })
+        } catch (err) {
+          console.error('Failed to delete credentials:', err)
+        }
+        
         set((state) => ({
           savedConnections: state.savedConnections.filter((c) => c.id !== id),
         }))
@@ -86,6 +118,26 @@ export const useConnectionsStore = create<ConnectionsState>()(
       
       getConnection: (id: string) => {
         return get().savedConnections.find((c) => c.id === id)
+      },
+      
+      hasStoredCredentials: async (id: string) => {
+        try {
+          const response = await fetch(`/api/credentials/${id}/exists`)
+          const data = await response.json()
+          return data.exists
+        } catch {
+          return false
+        }
+      },
+      
+      getStoredCredentials: async (id: string) => {
+        try {
+          const response = await fetch(`/api/credentials/${id}`)
+          if (!response.ok) return null
+          return await response.json()
+        } catch {
+          return null
+        }
       },
     }),
     {

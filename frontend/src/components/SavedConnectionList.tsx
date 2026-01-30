@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useConnectionsStore } from '../store'
 import type { SavedConnection, ConnectionConfig } from '../types'
@@ -171,6 +171,29 @@ function QuickConnectDialog({
   const [privateKey, setPrivateKey] = useState('')
   const [passphrase, setPassphrase] = useState('')
   const [error, setError] = useState('')
+  const [saveCredentials, setSaveCredentials] = useState(false)
+  const { getStoredCredentials, updateConnection } = useConnectionsStore()
+  const [isLoadingCredentials, setIsLoadingCredentials] = useState(false)
+
+  // 尝试加载已保存的凭据
+  useEffect(() => {
+    if (connection.hasStoredCredentials) {
+      setIsLoadingCredentials(true)
+      getStoredCredentials(connection.id).then((creds) => {
+        if (creds) {
+          // 直接连接
+          onConnect(creds as ConnectionConfig).catch((err) => {
+            setError(err instanceof Error ? err.message : '连接失败')
+            setIsLoadingCredentials(false)
+          })
+        } else {
+          setIsLoadingCredentials(false)
+        }
+      }).catch(() => {
+        setIsLoadingCredentials(false)
+      })
+    }
+  }, [connection.id, connection.hasStoredCredentials, getStoredCredentials, onConnect])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -195,6 +218,24 @@ function QuickConnectDialog({
         : { privateKey, passphrase: passphrase || undefined }),
     }
 
+    // 如果选择保存凭据
+    if (saveCredentials) {
+      try {
+        await fetch('/api/credentials', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: connection.id,
+            ...config,
+          }),
+        })
+        // 更新连接状态
+        updateConnection(connection.id, { hasStoredCredentials: true })
+      } catch (err) {
+        console.error('Failed to save credentials:', err)
+      }
+    }
+
     try {
       await onConnect(config)
     } catch (err) {
@@ -211,6 +252,22 @@ function QuickConnectDialog({
       }
       reader.readAsText(file)
     }
+  }
+
+  // 如果正在加载已保存的凭据，显示加载状态
+  if (isLoadingCredentials) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="bg-surface rounded-xl shadow-2xl border border-border p-6 w-full max-w-md text-center"
+        >
+          <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-text">正在连接 {connection.name}...</p>
+        </motion.div>
+      </div>
+    )
   }
 
   return (
@@ -286,6 +343,25 @@ function QuickConnectDialog({
               </div>
             </>
           )}
+
+          {/* 保存凭据选项 */}
+          <div className="mb-4">
+            <label className="flex items-center gap-2 cursor-pointer group">
+              <input
+                type="checkbox"
+                checked={saveCredentials}
+                onChange={(e) => setSaveCredentials(e.target.checked)}
+                className="w-4 h-4 text-primary accent-primary rounded"
+                disabled={isLoading}
+              />
+              <span className="text-sm text-text-secondary group-hover:text-text transition-colors">
+                记住凭据（加密存储在服务器）
+              </span>
+            </label>
+            <p className="mt-1 text-xs text-text-muted ml-6">
+              🔒 凭据将使用 AES-256 加密存储，下次可一键连接
+            </p>
+          </div>
 
           {/* 错误提示 */}
           {error && (
@@ -417,7 +493,12 @@ export function SavedConnectionList({ onSelect, onQuickConnect }: SavedConnectio
                   onClick={() => onSelect(connection)}
                   className="flex-1 text-left"
                 >
-                  <div className="font-medium text-sm">{connection.name}</div>
+                  <div className="font-medium text-sm flex items-center gap-2">
+                    {connection.name}
+                    {connection.hasStoredCredentials && (
+                      <span className="text-xs text-success" title="已保存凭据，可一键连接">🔑</span>
+                    )}
+                  </div>
                   <div className="text-xs text-secondary">
                     {connection.username}@{connection.host}:{connection.port}
                   </div>

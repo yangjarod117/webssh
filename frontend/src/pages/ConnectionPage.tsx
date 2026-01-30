@@ -21,7 +21,7 @@ export function ConnectionPage({ onConnect, onBack }: ConnectionPageProps) {
   
   const { saveConnection, updateLastUsed } = useConnectionsStore()
 
-  const handleConnect = useCallback(async (config: ConnectionConfig, saveInfo?: { save: boolean; name: string }) => {
+  const handleConnect = useCallback(async (config: ConnectionConfig, saveInfo?: { save: boolean; name: string; saveCredentials?: boolean }) => {
     setIsLoading(true)
     setError(null)
     try {
@@ -29,7 +29,7 @@ export function ConnectionPage({ onConnect, onBack }: ConnectionPageProps) {
       
       // 如果选择了保存连接
       if (saveInfo?.save) {
-        saveConnection(config, saveInfo.name)
+        await saveConnection(config, saveInfo.name, saveInfo.saveCredentials)
       }
       
       if (selectedConnection) {

@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import type { ConnectionConfig } from '../types'
 
 interface ConnectionFormProps {
-  onConnect: (config: ConnectionConfig, saveConnection?: { save: boolean; name: string }) => Promise<void>
+  onConnect: (config: ConnectionConfig, saveConnection?: { save: boolean; name: string; saveCredentials?: boolean }) => Promise<void>
   isLoading?: boolean
   initialConfig?: Partial<ConnectionConfig>
   isEditMode?: boolean
@@ -22,6 +22,7 @@ export function ConnectionForm({ onConnect, isLoading = false, initialConfig, is
   const [privateKey, setPrivateKey] = useState('')
   const [passphrase, setPassphrase] = useState('')
   const [saveConnection, setSaveConnection] = useState(false)
+  const [saveCredentials, setSaveCredentials] = useState(false)
   const [connectionName, setConnectionName] = useState('')
   const [error, setError] = useState('')
 
@@ -73,7 +74,7 @@ export function ConnectionForm({ onConnect, isLoading = false, initialConfig, is
     }
 
     try {
-      await onConnect(config, saveConnection ? { save: true, name: connectionName.trim() || `${username}@${host}` } : undefined)
+      await onConnect(config, saveConnection ? { save: true, name: connectionName.trim() || `${username}@${host}`, saveCredentials } : undefined)
     } catch (err) {
       setError(err instanceof Error ? err.message : '连接失败')
     }
@@ -276,7 +277,7 @@ export function ConnectionForm({ onConnect, isLoading = false, initialConfig, is
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="mt-2"
+              className="mt-2 space-y-2"
             >
               <input
                 type="text"
@@ -286,6 +287,25 @@ export function ConnectionForm({ onConnect, isLoading = false, initialConfig, is
                 className="input text-sm"
                 disabled={isLoading}
               />
+              
+              {/* 保存凭据选项 */}
+              <label className="flex items-center gap-2 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={saveCredentials}
+                  onChange={(e) => setSaveCredentials(e.target.checked)}
+                  className="w-4 h-4 text-primary accent-primary rounded"
+                  disabled={isLoading}
+                />
+                <span className="text-sm text-text-secondary group-hover:text-text transition-colors">
+                  记住凭据（加密存储）
+                </span>
+              </label>
+              {saveCredentials && (
+                <p className="text-xs text-text-muted ml-6">
+                  🔒 凭据将使用 AES-256 加密存储在服务器，下次可一键连接
+                </p>
+              )}
             </motion.div>
           )}
         </div>

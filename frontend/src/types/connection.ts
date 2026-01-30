@@ -21,6 +21,7 @@ export interface SavedConnection {
   port: number
   username: string
   authType: 'password' | 'key'
+  hasStoredCredentials?: boolean  // 是否在服务器端保存了凭据
   createdAt: Date
   lastUsedAt: Date
 }

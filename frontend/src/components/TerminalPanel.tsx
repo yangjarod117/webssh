@@ -52,7 +52,6 @@ export function TerminalPanel({ sessionId, onResize, onData, onWsReady }: Termin
   const xtermRef = useRef<Terminal | null>(null)
   const fitAddonRef = useRef<FitAddon | null>(null)
   const wsRef = useRef<WebSocket | null>(null)
-  const lastRightClickRef = useRef<number>(0) // 记录上次右键时间
   const [copyHint, setCopyHint] = useState<string | null>(null)
   const { getCurrentTheme, terminalFontSize } = useThemeStore()
   const theme = getCurrentTheme()
@@ -60,16 +59,24 @@ export function TerminalPanel({ sessionId, onResize, onData, onWsReady }: Termin
   // 右键复制/粘贴功能
   const handleContextMenu = useCallback(async (e: React.MouseEvent) => {
     e.preventDefault()
-    
-    const now = Date.now()
-    const timeSinceLastClick = now - lastRightClickRef.current
-    lastRightClickRef.current = now
 
     const terminal = xtermRef.current
     if (!terminal) return
 
-    // 如果两次右键间隔小于500ms，执行粘贴
-    if (timeSinceLastClick < 500) {
+    const selection = terminal.getSelection()
+
+    // 如果有选中内容，执行复制
+    if (selection) {
+      try {
+        await navigator.clipboard.writeText(selection)
+        setCopyHint('已复制')
+        setTimeout(() => setCopyHint(null), 1000)
+      } catch {
+        setCopyHint('复制失败')
+        setTimeout(() => setCopyHint(null), 1000)
+      }
+    } else {
+      // 没有选中内容，执行粘贴
       try {
         const text = await navigator.clipboard.readText()
         if (text && wsRef.current?.readyState === WebSocket.OPEN) {
@@ -84,22 +91,6 @@ export function TerminalPanel({ sessionId, onResize, onData, onWsReady }: Termin
       } catch {
         setCopyHint('粘贴失败')
         setTimeout(() => setCopyHint(null), 1000)
-      }
-    } else {
-      // 第一次右键，复制选中内容
-      const selection = terminal.getSelection()
-      if (selection) {
-        try {
-          await navigator.clipboard.writeText(selection)
-          setCopyHint('已复制')
-          setTimeout(() => setCopyHint(null), 1000)
-        } catch {
-          setCopyHint('复制失败')
-          setTimeout(() => setCopyHint(null), 1000)
-        }
-      } else {
-        setCopyHint('再次右键粘贴')
-        setTimeout(() => setCopyHint(null), 1500)
       }
     }
   }, [sessionId])

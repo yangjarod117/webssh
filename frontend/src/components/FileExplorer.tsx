@@ -10,8 +10,8 @@ const VIRTUAL_SCROLL_THRESHOLD = 100
 
 /** 默认列宽 */
 const DEFAULT_COLUMN_WIDTHS = {
-  size: 80,
-  time: 140,
+  size: 70,
+  time: 130,
 }
 
 /** 最小列宽 */
@@ -19,6 +19,12 @@ const MIN_COLUMN_WIDTH = 50
 
 /** 最大列宽 */
 const MAX_COLUMN_WIDTH = 200
+
+/** 自动适配列宽 */
+const AUTO_COLUMN_WIDTHS = {
+  size: 70,
+  time: 130,
+}
 
 /**
  * 文件图标组件
@@ -150,7 +156,7 @@ function FileItemRow({ file, isSelected, onSelect, onDoubleClick, onContextMenu,
       {/* 分隔线 - 全高 */}
       <div className="w-px h-full flex-shrink-0 bg-border" />
       <span 
-        className="text-xs text-secondary/70 text-left flex-shrink-0 px-2 truncate"
+        className="text-xs text-secondary/70 text-left flex-shrink-0 pl-1 pr-0 truncate"
         style={{ width: columnWidths.size }}
       >
         {file.type === 'directory' ? '文件夹' : formatFileSize(file.size)}
@@ -158,7 +164,7 @@ function FileItemRow({ file, isSelected, onSelect, onDoubleClick, onContextMenu,
       {/* 分隔线 - 全高 */}
       <div className="w-px h-full flex-shrink-0 hidden md:block bg-border" />
       <span 
-        className="text-xs text-secondary/70 text-left flex-shrink-0 px-2 truncate hidden md:block"
+        className="text-xs text-secondary/70 text-left flex-shrink-0 pl-1 pr-0 truncate hidden md:block"
         style={{ width: columnWidths.time }}
       >
         {formatDateTime(new Date(file.modifiedTime))}
@@ -289,6 +295,13 @@ export function FileExplorer({
     // 使用捕获阶段，确保事件不会传播到 SplitLayout
     document.addEventListener('mousemove', handleMouseMove, true)
     document.addEventListener('mouseup', handleMouseUp, true)
+  }
+
+  // 双击自动调整列宽
+  const handleColumnDoubleClick = (column: 'size' | 'time', e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setColumnWidths(prev => ({ ...prev, [column]: AUTO_COLUMN_WIDTHS[column] }))
   }
 
   // 加载目录内容
@@ -424,21 +437,23 @@ export function FileExplorer({
           className="relative h-full flex-shrink-0 cursor-col-resize group"
           style={{ width: '9px', marginLeft: '-4px', marginRight: '-4px' }}
           onMouseDown={(e) => handleResizeStart('size', e)}
-          title="拖拽调整列宽"
+          onDoubleClick={(e) => handleColumnDoubleClick('size', e)}
+          title="拖拽调整列宽，双击自动适配"
         >
           <div className="absolute left-1/2 top-0 bottom-0 w-px bg-border group-hover:bg-primary transition-colors" style={{ transform: 'translateX(-50%)' }} />
         </div>
-        <span className="text-left flex-shrink-0 px-2" style={{ width: columnWidths.size }}>大小</span>
+        <span className="text-left flex-shrink-0 pl-1 pr-0" style={{ width: columnWidths.size }}>大小</span>
         {/* 修改时间列分隔线 - 增加拖拽区域 */}
         <div 
           className="relative h-full flex-shrink-0 cursor-col-resize group hidden md:block"
           style={{ width: '9px', marginLeft: '-4px', marginRight: '-4px' }}
           onMouseDown={(e) => handleResizeStart('time', e)}
-          title="拖拽调整列宽"
+          onDoubleClick={(e) => handleColumnDoubleClick('time', e)}
+          title="拖拽调整列宽，双击自动适配"
         >
           <div className="absolute left-1/2 top-0 bottom-0 w-px bg-border group-hover:bg-primary transition-colors" style={{ transform: 'translateX(-50%)' }} />
         </div>
-        <span className="text-left flex-shrink-0 px-2 hidden md:block" style={{ width: columnWidths.time }}>修改时间</span>
+        <span className="text-left flex-shrink-0 pl-1 pr-0 hidden md:block" style={{ width: columnWidths.time }}>修改时间</span>
       </div>
 
       {/* 文件列表 */}

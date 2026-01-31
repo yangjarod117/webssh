@@ -54,6 +54,96 @@ router.get('/:id/login-history', async (req: Request, res: Response, next: NextF
 })
 
 /**
+ * 获取内存占用前10进程
+ * GET /api/sessions/:id/top-processes
+ */
+router.get('/:id/top-processes', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params
+    const session = sshManager.getSession(id)
+
+    if (!session || !session.connection) {
+      const error: ApiError = {
+        code: 'SESSION_NOT_FOUND',
+        message: '会话不存在',
+      }
+      return res.status(404).json(error)
+    }
+
+    const processes = await getTopProcesses(session.connection)
+    res.json({ processes })
+  } catch (err) {
+    next(err)
+  }
+})
+
+/**
+ * 获取内存占用前10进程
+ */
+async function getTopProcesses(client: any): Promise<Array<{
+  user: string
+  name: string
+  memoryMB: number
+  memoryPercent: number
+}>> {
+  const execCommand = (cmd: string): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      client.exec(cmd, (err: Error, stream: any) => {
+        if (err) {
+          reject(err)
+          return
+        }
+        let output = ''
+        stream.on('data', (data: Buffer) => {
+          output += data.toString()
+        })
+        stream.on('close', () => {
+          resolve(output.trim())
+        })
+        stream.stderr.on('data', () => {})
+      })
+    })
+  }
+
+  try {
+    // 获取内存占用前10的进程
+    const output = await execCommand(
+      "ps aux --sort=-%mem | head -11 | tail -10 | awk '{print $1,$11,$6,$4}'"
+    )
+    
+    const processes: Array<{
+      user: string
+      name: string
+      memoryMB: number
+      memoryPercent: number
+    }> = []
+
+    const lines = output.split('\n').filter(line => line.trim())
+    for (const line of lines) {
+      const parts = line.split(/\s+/)
+      if (parts.length >= 4) {
+        const user = parts[0]
+        const name = parts[1].split('/').pop() || parts[1] // 取程序名
+        const memoryKB = parseInt(parts[2]) || 0
+        const memoryPercent = parseFloat(parts[3]) || 0
+        
+        processes.push({
+          user,
+          name: name.substring(0, 20), // 限制长度
+          memoryMB: memoryKB / 1024,
+          memoryPercent
+        })
+      }
+    }
+
+    return processes
+  } catch (error) {
+    console.error('Top processes error:', error)
+    return []
+  }
+}
+
+/**
  * 执行监控命令获取系统信息
  */
 async function executeMonitorCommands(client: any): Promise<any> {

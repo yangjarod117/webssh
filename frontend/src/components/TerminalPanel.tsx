@@ -61,16 +61,19 @@ export function TerminalPanel({ sessionId, isActive = true, onResize, onData, on
   // 右键复制/粘贴功能
   const handleContextMenu = useCallback(async (e: React.MouseEvent) => {
     e.preventDefault()
+    e.stopPropagation()
 
     const terminal = xtermRef.current
+    const ws = wsRef.current
     if (!terminal) return
 
     const selection = terminal.getSelection()
 
     // 如果有选中内容，执行复制
-    if (selection) {
+    if (selection && selection.length > 0) {
       try {
         await navigator.clipboard.writeText(selection)
+        terminal.clearSelection()
         setCopyHint('已复制')
         setTimeout(() => setCopyHint(null), 1000)
       } catch {
@@ -81,16 +84,20 @@ export function TerminalPanel({ sessionId, isActive = true, onResize, onData, on
       // 没有选中内容，执行粘贴
       try {
         const text = await navigator.clipboard.readText()
-        if (text && wsRef.current?.readyState === WebSocket.OPEN) {
-          wsRef.current.send(JSON.stringify({
+        if (text && ws?.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({
             type: 'input',
             sessionId,
             data: text,
           }))
           setCopyHint('已粘贴')
           setTimeout(() => setCopyHint(null), 1000)
+        } else if (!text) {
+          setCopyHint('剪贴板为空')
+          setTimeout(() => setCopyHint(null), 1000)
         }
-      } catch {
+      } catch (err) {
+        console.error('粘贴失败:', err)
         setCopyHint('粘贴失败')
         setTimeout(() => setCopyHint(null), 1000)
       }
@@ -104,8 +111,8 @@ export function TerminalPanel({ sessionId, isActive = true, onResize, onData, on
     const terminal = new Terminal({
       cursorBlink: true,
       cursorStyle: 'bar',
-      cursorWidth: 2,
-      cursorInactiveStyle: 'bar',
+      cursorWidth: 1,
+      cursorInactiveStyle: 'none',
       fontSize: terminalFontSize,
       fontFamily: terminalFontFamily,
       theme: convertToXtermTheme(theme.terminal),
@@ -134,6 +141,23 @@ export function TerminalPanel({ sessionId, isActive = true, onResize, onData, on
           data,
         }))
       }
+    })
+
+    // 处理 Ctrl+V 粘贴
+    terminal.attachCustomKeyEventHandler((event) => {
+      if (event.ctrlKey && event.key === 'v' && event.type === 'keydown') {
+        navigator.clipboard.readText().then((text) => {
+          if (text && wsRef.current?.readyState === WebSocket.OPEN) {
+            wsRef.current.send(JSON.stringify({
+              type: 'input',
+              sessionId,
+              data: text,
+            }))
+          }
+        }).catch(() => {})
+        return false // 阻止默认行为
+      }
+      return true
     })
 
     // 处理终端大小变化
@@ -303,14 +327,30 @@ export function TerminalPanel({ sessionId, isActive = true, onResize, onData, on
 
   // 处理窗口大小变化
   const handleResize = useCallback(() => {
-    if (fitAddonRef.current) {
-      fitAddonRef.current.fit()
+    if (fitAddonRef.current && xtermRef.current) {
+      // 使用 requestAnimationFrame 确保在布局更新后执行
+      requestAnimationFrame(() => {
+        fitAddonRef.current?.fit()
+      })
     }
   }, [])
 
   useEffect(() => {
     window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
+    
+    // 使用 ResizeObserver 监听容器大小变化
+    const resizeObserver = new ResizeObserver(() => {
+      handleResize()
+    })
+    
+    if (terminalRef.current) {
+      resizeObserver.observe(terminalRef.current)
+    }
+    
+    return () => {
+      window.removeEventListener('resize', handleResize)
+      resizeObserver.disconnect()
+    }
   }, [handleResize])
 
   // 聚焦终端
@@ -328,7 +368,9 @@ export function TerminalPanel({ sessionId, isActive = true, onResize, onData, on
         if (fitAddonRef.current) {
           fitAddonRef.current.fit()
         }
-      }, 50)
+        // 强制刷新终端显示
+        xtermRef.current?.refresh(0, xtermRef.current.rows - 1)
+      }, 100)
       return () => clearTimeout(timer)
     }
   }, [isActive])

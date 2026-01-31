@@ -9,8 +9,7 @@ import {
   ThemeSelector,
   LargeFileWarningDialog,
   isLargeFile,
-  SystemMonitor,
-  LoginHistory,
+  SidePanel,
 } from '../components'
 import { useTabsStore, useEditorStore } from '../store'
 import { createLogEntry, addLog as addLogToList, clearLogs as clearLogsList } from '../utils/logs'
@@ -269,9 +268,9 @@ export function WorkspacePage({ session, sessions, onDisconnect, onAddConnection
                       return (
                         <div
                           key={sessionId}
-                          className={`absolute inset-0 ${isActive ? '' : 'pointer-events-none'}`}
+                          className="absolute inset-0"
                           style={{ 
-                            opacity: isActive ? 1 : 0,
+                            visibility: isActive ? 'visible' : 'hidden',
                             zIndex: isActive ? 1 : 0
                           }}
                         >
@@ -327,9 +326,9 @@ export function WorkspacePage({ session, sessions, onDisconnect, onAddConnection
                   return (
                     <div
                       key={sessionId}
-                      className={`absolute inset-0 ${isActive ? '' : 'pointer-events-none'}`}
+                      className="absolute inset-0"
                       style={{ 
-                        opacity: isActive ? 1 : 0,
+                        visibility: isActive ? 'visible' : 'hidden',
                         zIndex: isActive ? 1 : 0
                       }}
                     >
@@ -402,11 +401,8 @@ export function WorkspacePage({ session, sessions, onDisconnect, onAddConnection
         />
       )}
 
-      {/* 系统监控面板 */}
-      <SystemMonitor sessionId={currentSession.id} />
-
-      {/* 登录历史面板 */}
-      <LoginHistory sessionId={currentSession.id} />
+      {/* 侧边面板 - 系统监控和登录历史 */}
+      <SidePanel sessionId={currentSession.id} />
     </div>
   )
 }

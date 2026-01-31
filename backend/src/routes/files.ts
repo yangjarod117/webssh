@@ -29,6 +29,20 @@ router.get('/:id/files', async (req: Request, res: Response, next: NextFunction)
     
     res.json({ path, files: formattedFiles })
   } catch (err) {
+    // 提供更详细的错误信息
+    const error = err as Error
+    if (error.message === 'Session not found') {
+      return res.status(404).json({
+        code: 'SESSION_NOT_FOUND',
+        message: '会话不存在或已断开，请重新连接',
+      })
+    }
+    if (error.message === 'SFTP not initialized') {
+      return res.status(500).json({
+        code: 'SFTP_ERROR',
+        message: 'SFTP 连接失败，请重新连接',
+      })
+    }
     next(err)
   }
 })

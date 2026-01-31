@@ -5,7 +5,7 @@ import type { SplitLayoutState } from '../types'
 // 分栏比例的有效范围
 export const MIN_SPLIT_RATIO = 0.1
 export const MAX_SPLIT_RATIO = 0.9
-export const DEFAULT_SPLIT_RATIO = 0.3
+export const DEFAULT_SPLIT_RATIO = 0.2
 
 interface LayoutState extends SplitLayoutState {
   // Actions

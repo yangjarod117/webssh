@@ -110,9 +110,8 @@ export function TerminalPanel({ sessionId, isActive = true, onResize, onData, on
 
     const terminal = new Terminal({
       cursorBlink: true,
-      cursorStyle: 'bar',
-      cursorWidth: 1,
-      cursorInactiveStyle: 'none',
+      cursorStyle: 'block',
+      cursorInactiveStyle: 'outline',
       fontSize: terminalFontSize,
       fontFamily: terminalFontFamily,
       theme: convertToXtermTheme(theme.terminal),
@@ -358,20 +357,53 @@ export function TerminalPanel({ sessionId, isActive = true, onResize, onData, on
     xtermRef.current?.focus()
   }, [])
 
-  // 当终端激活时自动聚焦
+  // 当终端激活时自动聚焦和刷新
   useEffect(() => {
     if (isActive && xtermRef.current) {
-      // 延迟聚焦，确保 DOM 更新完成
-      const timer = setTimeout(() => {
-        xtermRef.current?.focus()
-        // 重新适配大小
-        if (fitAddonRef.current) {
-          fitAddonRef.current.fit()
+      // 使用多次延迟确保终端正确恢复
+      const timer1 = setTimeout(() => {
+        if (fitAddonRef.current && xtermRef.current) {
+          try {
+            fitAddonRef.current.fit()
+          } catch (e) {
+            console.warn('fit error:', e)
+          }
         }
-        // 强制刷新终端显示
-        xtermRef.current?.refresh(0, xtermRef.current.rows - 1)
-      }, 100)
-      return () => clearTimeout(timer)
+      }, 50)
+      
+      const timer2 = setTimeout(() => {
+        if (xtermRef.current) {
+          try {
+            // 强制刷新整个终端缓冲区
+            const rows = xtermRef.current.rows
+            xtermRef.current.refresh(0, rows - 1)
+            xtermRef.current.focus()
+          } catch (e) {
+            console.warn('refresh error:', e)
+          }
+        }
+      }, 150)
+      
+      const timer3 = setTimeout(() => {
+        if (xtermRef.current && fitAddonRef.current) {
+          try {
+            // 再次适配大小并刷新，确保显示正确
+            fitAddonRef.current.fit()
+            const rows = xtermRef.current.rows
+            xtermRef.current.refresh(0, rows - 1)
+            // 滚动到底部
+            xtermRef.current.scrollToBottom()
+          } catch (e) {
+            console.warn('final refresh error:', e)
+          }
+        }
+      }, 300)
+      
+      return () => {
+        clearTimeout(timer1)
+        clearTimeout(timer2)
+        clearTimeout(timer3)
+      }
     }
   }, [isActive])
 

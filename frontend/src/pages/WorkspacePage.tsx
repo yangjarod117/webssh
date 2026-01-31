@@ -10,6 +10,7 @@ import {
   LargeFileWarningDialog,
   isLargeFile,
   SystemMonitor,
+  LoginHistory,
 } from '../components'
 import { useTabsStore, useEditorStore } from '../store'
 import { createLogEntry, addLog as addLogToList, clearLogs as clearLogsList } from '../utils/logs'
@@ -403,6 +404,9 @@ export function WorkspacePage({ session, sessions, onDisconnect, onAddConnection
 
       {/* 系统监控面板 */}
       <SystemMonitor sessionId={currentSession.id} />
+
+      {/* 登录历史面板 */}
+      <LoginHistory sessionId={currentSession.id} />
     </div>
   )
 }

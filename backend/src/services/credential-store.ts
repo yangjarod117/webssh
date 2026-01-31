@@ -344,6 +344,40 @@ class CredentialStore {
     } catch (err) {
       console.error('Failed to load connections:', err)
     }
+    
+    // 自动迁移：从凭据数据同步到连接列表
+    this.migrateFromCredentials()
+  }
+
+  /**
+   * 从凭据数据迁移到连接列表（自动同步）
+   */
+  private migrateFromCredentials(): void {
+    let migrated = false
+    
+    for (const [id, credential] of this.credentials) {
+      // 如果连接列表中没有这个连接，从凭据创建
+      if (!this.connections.has(id)) {
+        const connection: SavedConnectionInfo = {
+          id,
+          name: `${credential.username}@${credential.host}`,
+          host: credential.host,
+          port: credential.port,
+          username: credential.username,
+          authType: credential.authType,
+          hasStoredCredentials: true,
+          createdAt: credential.createdAt,
+          lastUsedAt: credential.lastUsedAt,
+        }
+        this.connections.set(id, connection)
+        migrated = true
+        console.log(`Migrated connection: ${connection.name}`)
+      }
+    }
+    
+    if (migrated) {
+      this.persistConnections()
+    }
   }
 }
 

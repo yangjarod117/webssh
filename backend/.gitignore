@@ -26,3 +26,7 @@ Thumbs.db
 
 # Testing
 coverage
+
+# 敏感数据 - 绝对不能提交
+data/
+*.json.bak

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useConnectionsStore } from '../store'
 import type { SavedConnection, ConnectionConfig } from '../types'
@@ -174,13 +174,14 @@ function QuickConnectDialog({
   const [saveCredentials, setSaveCredentials] = useState(false)
   const { getStoredCredentials, updateConnection } = useConnectionsStore()
   const [isLoadingCredentials, setIsLoadingCredentials] = useState(true)
-  const [hasTriedAutoConnect, setHasTriedAutoConnect] = useState(false)
+  const hasTriedAutoConnectRef = useRef(false)
 
   // 尝试加载已保存的凭据并自动连接
   useEffect(() => {
     const tryAutoConnect = async () => {
-      if (hasTriedAutoConnect) return
-      setHasTriedAutoConnect(true)
+      // 使用 ref 防止 StrictMode 双重执行
+      if (hasTriedAutoConnectRef.current) return
+      hasTriedAutoConnectRef.current = true
       
       if (connection.hasStoredCredentials) {
         setIsLoadingCredentials(true)
@@ -214,7 +215,7 @@ function QuickConnectDialog({
     }
     
     tryAutoConnect()
-  }, [connection.id, connection.hasStoredCredentials, getStoredCredentials, onConnect, hasTriedAutoConnect])
+  }, [connection.id, connection.hasStoredCredentials, getStoredCredentials, onConnect])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

@@ -126,8 +126,8 @@ export function SidePanel({ sessionId }: { sessionId: string }) {
                   </div>
                 </div>
                 <div className="pt-2 border-t border-border text-xs space-y-1">
-                  <div className="flex justify-between text-text-secondary"><span>运行时间</span><span className="text-text">{monitorData.system.uptime}</span></div>
-                  <div className="flex justify-between text-text-secondary"><span>负载</span><span className="text-text">{monitorData.system.load.load1.toFixed(2)} / {monitorData.system.load.load5.toFixed(2)} / {monitorData.system.load.load15.toFixed(2)}</span></div>
+                  <div className="flex justify-between text-text-secondary"><span>运行时间</span><span className="text-text">{monitorData.system?.uptime || '-'}</span></div>
+                  <div className="flex justify-between text-text-secondary"><span>负载</span><span className="text-text">{(monitorData.system?.load?.load1 ?? 0).toFixed(2)} / {(monitorData.system?.load?.load5 ?? 0).toFixed(2)} / {(monitorData.system?.load?.load15 ?? 0).toFixed(2)}</span></div>
                 </div>
               </>}
             </div>

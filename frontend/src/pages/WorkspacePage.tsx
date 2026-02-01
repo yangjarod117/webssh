@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
+import { useState, useCallback, useEffect, useMemo, useRef, memo } from 'react'
 import {
   TabBar, SplitLayout, FileManagerComplete, FileEditor, TerminalPanel,
   LogPanel, ThemeSelector, LargeFileWarningDialog, isLargeFile, SidePanel,
@@ -6,6 +6,13 @@ import {
 import { useTabsStore, useEditorStore } from '../store'
 import { createLogEntry, addLog as addLogToList, clearLogs as clearLogsList } from '../utils/logs'
 import type { FileItem, LogEntry, SessionState } from '../types'
+
+// 使用 memo 包装终端面板，防止不必要的重新渲染
+const MemoizedTerminalPanel = memo(TerminalPanel, (prevProps, nextProps) => {
+  // 只比较 sessionId 和 isActive，忽略回调函数的变化
+  // 这样可以防止父组件重新渲染时导致终端重新挂载
+  return prevProps.sessionId === nextProps.sessionId && prevProps.isActive === nextProps.isActive
+})
 
 interface WorkspacePageProps {
   session: SessionState
@@ -118,15 +125,27 @@ export function WorkspacePage({ session, sessions, onDisconnect, onAddConnection
     }
   }, [largeFileWarning, doLoadFileForSession])
 
-  const sessionEntries = Array.from(sessions.entries())
+  // 使用 useMemo 稳定 sessionEntries，避免不必要的重新渲染
+  // 只有当 sessions 的 keys 变化时才重新计算
+  const sessionEntries = useMemo(() => {
+    return Array.from(sessions.entries())
+  }, [sessions])
+  
   const hasOpenFile = editorState && openFiles.has(editorState.fileId)
 
   const renderSessionPanel = (sessionId: string, Component: React.ComponentType<any>, props: any, keyPrefix: string) => {
     const isActive = sessionId === activeSessionId
     return (
-      <div key={`${keyPrefix}-${sessionId}`} className="absolute inset-0"
-        style={{ visibility: isActive ? 'visible' : 'hidden', zIndex: isActive ? 1 : 0, pointerEvents: isActive ? 'auto' : 'none' }}>
-        <Component {...props} />
+      <div key={`${keyPrefix}-${sessionId}`} 
+        className="absolute inset-0"
+        style={{ 
+          // 只用 z-index 控制显示层级，不隐藏任何终端
+          // 活动终端在最上层，非活动终端在下层但仍然完全渲染
+          zIndex: isActive ? 10 : 1,
+          // 非活动终端禁用鼠标事件，防止误操作
+          pointerEvents: isActive ? 'auto' : 'none',
+        }}>
+        <Component {...props} isActive={isActive} />
       </div>
     )
   }
@@ -182,7 +201,7 @@ export function WorkspacePage({ session, sessions, onDisconnect, onAddConnection
               }
               right={
                 <div className="w-full h-full relative">
-                  {sessionEntries.map(([sessionId]) => renderSessionPanel(sessionId, TerminalPanel, {
+                  {sessionEntries.map(([sessionId]) => renderSessionPanel(sessionId, MemoizedTerminalPanel, {
                     sessionId,
                     isActive: sessionId === activeSessionId,
                     onWsReady: (ws: WebSocket) => terminalWsMapRef.current.set(sessionId, ws),

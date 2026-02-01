@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, lazy, Suspense } from 'react'
-import { ThemeProvider, ErrorBoundary, setupGlobalErrorHandlers } from './components'
+import { ThemeProvider, ErrorBoundary, setupGlobalErrorHandlers, cleanupTerminal } from './components'
 import { useTabsStore, useThemeStore } from './store'
 import { createLogEntry } from './utils/logs'
 import type { ConnectionConfig, SessionState } from './types'
@@ -151,6 +151,9 @@ function AppContent() {
     if (tabToRemove) {
       removeTab(tabToRemove.id)
     }
+
+    // 清理终端实例
+    cleanupTerminal(activeSession.id)
 
     // 从会话列表中移除
     setSessions(prev => {

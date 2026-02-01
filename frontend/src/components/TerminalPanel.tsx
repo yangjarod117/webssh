@@ -6,6 +6,14 @@ import { calculateTerminalSize } from '../utils/terminal'
 import type { TerminalTheme } from '../types'
 import 'xterm/css/xterm.css'
 
+// 全局终端实例存储，防止组件重新挂载时丢失终端
+const globalTerminals = new Map<string, {
+  terminal: Terminal
+  fitAddon: FitAddon
+  ws: WebSocket | null
+  buffer: string[] // 存储终端输出历史
+}>()
+
 interface TerminalPanelProps {
   sessionId: string
   isActive?: boolean
@@ -104,10 +112,44 @@ export function TerminalPanel({ sessionId, isActive = true, onResize, onData, on
     }
   }, [sessionId])
 
-  // 初始化终端
+  // 初始化终端 - 使用全局存储防止重新挂载时丢失
   useEffect(() => {
-    if (!terminalRef.current) return
+    if (!terminalRef.current) {
+      console.log(`[TerminalPanel] terminalRef.current is null for sessionId: ${sessionId}`)
+      return
+    }
 
+    // 检查是否已有该 session 的终端实例
+    let terminalData = globalTerminals.get(sessionId)
+    
+    if (terminalData) {
+      // 已有终端实例，重新附加到 DOM
+      console.log(`[TerminalPanel] Reattaching existing terminal for sessionId: ${sessionId}`)
+      
+      // 清空容器
+      terminalRef.current.innerHTML = ''
+      
+      // 重新打开终端到新容器
+      terminalData.terminal.open(terminalRef.current)
+      
+      // 延迟执行 fit，确保 DOM 已更新
+      setTimeout(() => {
+        try {
+          terminalData!.fitAddon.fit()
+        } catch (e) {
+          console.warn('fit error on reattach:', e)
+        }
+      }, 100)
+      
+      xtermRef.current = terminalData.terminal
+      fitAddonRef.current = terminalData.fitAddon
+      wsRef.current = terminalData.ws
+      
+      return // 不需要清理，因为终端实例是全局的
+    }
+
+    // 创建新终端实例
+    console.log(`[TerminalPanel] Creating new Terminal for sessionId: ${sessionId}`)
     const terminal = new Terminal({
       cursorBlink: true,
       cursorStyle: 'block',
@@ -122,7 +164,23 @@ export function TerminalPanel({ sessionId, isActive = true, onResize, onData, on
     const fitAddon = new FitAddon()
     terminal.loadAddon(fitAddon)
     terminal.open(terminalRef.current)
-    fitAddon.fit()
+    
+    // 延迟执行 fit
+    setTimeout(() => {
+      try {
+        fitAddon.fit()
+      } catch (e) {
+        console.warn('fit error:', e)
+      }
+    }, 100)
+
+    // 存储到全局
+    globalTerminals.set(sessionId, {
+      terminal,
+      fitAddon,
+      ws: null,
+      buffer: [],
+    })
 
     xtermRef.current = terminal
     fitAddonRef.current = fitAddon
@@ -133,8 +191,9 @@ export function TerminalPanel({ sessionId, isActive = true, onResize, onData, on
         onData(data)
       }
       // 发送到 WebSocket
-      if (wsRef.current?.readyState === WebSocket.OPEN) {
-        wsRef.current.send(JSON.stringify({
+      const termData = globalTerminals.get(sessionId)
+      if (termData?.ws?.readyState === WebSocket.OPEN) {
+        termData.ws.send(JSON.stringify({
           type: 'input',
           sessionId,
           data,
@@ -146,8 +205,9 @@ export function TerminalPanel({ sessionId, isActive = true, onResize, onData, on
     terminal.attachCustomKeyEventHandler((event) => {
       if (event.ctrlKey && event.key === 'v' && event.type === 'keydown') {
         navigator.clipboard.readText().then((text) => {
-          if (text && wsRef.current?.readyState === WebSocket.OPEN) {
-            wsRef.current.send(JSON.stringify({
+          const termData = globalTerminals.get(sessionId)
+          if (text && termData?.ws?.readyState === WebSocket.OPEN) {
+            termData.ws.send(JSON.stringify({
               type: 'input',
               sessionId,
               data: text,
@@ -165,8 +225,9 @@ export function TerminalPanel({ sessionId, isActive = true, onResize, onData, on
         onResize(cols, rows)
       }
       // 发送到 WebSocket
-      if (wsRef.current?.readyState === WebSocket.OPEN) {
-        wsRef.current.send(JSON.stringify({
+      const termData = globalTerminals.get(sessionId)
+      if (termData?.ws?.readyState === WebSocket.OPEN) {
+        termData.ws.send(JSON.stringify({
           type: 'resize',
           sessionId,
           cols,
@@ -175,8 +236,10 @@ export function TerminalPanel({ sessionId, isActive = true, onResize, onData, on
       }
     })
 
+    // 组件卸载时不销毁终端，保留在全局存储中
     return () => {
-      terminal.dispose()
+      console.log(`[TerminalPanel] Component unmounting for sessionId: ${sessionId}, keeping terminal alive`)
+      // 不调用 terminal.dispose()，保留终端实例
     }
   }, [sessionId])
 
@@ -211,6 +274,15 @@ export function TerminalPanel({ sessionId, isActive = true, onResize, onData, on
 
   // 连接 WebSocket（带心跳和自动重连）
   useEffect(() => {
+    // 检查是否已有 WebSocket 连接
+    const existingData = globalTerminals.get(sessionId)
+    if (existingData?.ws?.readyState === WebSocket.OPEN) {
+      console.log(`[TerminalPanel] Reusing existing WebSocket for sessionId: ${sessionId}`)
+      wsRef.current = existingData.ws
+      onWsReady?.(existingData.ws)
+      return
+    }
+
     let ws: WebSocket | null = null
     let pingInterval: ReturnType<typeof setInterval> | null = null
     let reconnectTimeout: ReturnType<typeof setTimeout> | null = null
@@ -227,6 +299,12 @@ export function TerminalPanel({ sessionId, isActive = true, onResize, onData, on
       ws.onopen = () => {
         console.log('WebSocket connected')
         reconnectAttempts = 0
+        
+        // 更新全局存储中的 ws
+        const termData = globalTerminals.get(sessionId)
+        if (termData) {
+          termData.ws = ws
+        }
         
         // 发送初始大小
         if (fitAddonRef.current && xtermRef.current) {
@@ -290,6 +368,12 @@ export function TerminalPanel({ sessionId, isActive = true, onResize, onData, on
       ws.onclose = () => {
         console.log('WebSocket disconnected')
         
+        // 更新全局存储
+        const termData = globalTerminals.get(sessionId)
+        if (termData) {
+          termData.ws = null
+        }
+        
         // 清理心跳
         if (pingInterval) {
           clearInterval(pingInterval)
@@ -320,7 +404,7 @@ export function TerminalPanel({ sessionId, isActive = true, onResize, onData, on
     return () => {
       if (pingInterval) clearInterval(pingInterval)
       if (reconnectTimeout) clearTimeout(reconnectTimeout)
-      if (ws) ws.close()
+      // 不关闭 WebSocket，保持连接
     }
   }, [sessionId])
 
@@ -427,3 +511,14 @@ export function TerminalPanel({ sessionId, isActive = true, onResize, onData, on
 
 // 导出工具函数供测试使用
 export { calculateTerminalSize }
+
+// 清理指定会话的终端（当会话真正关闭时调用）
+export function cleanupTerminal(sessionId: string) {
+  const termData = globalTerminals.get(sessionId)
+  if (termData) {
+    console.log(`[TerminalPanel] Cleaning up terminal for sessionId: ${sessionId}`)
+    termData.ws?.close()
+    termData.terminal.dispose()
+    globalTerminals.delete(sessionId)
+  }
+}

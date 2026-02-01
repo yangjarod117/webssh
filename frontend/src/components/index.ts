@@ -53,7 +53,7 @@ export {
   getCategoryLabel,
 } from './LogPanel'
 export type { LogPanelProps } from './LogPanel'
-export { TerminalPanel } from './TerminalPanel'
+export { TerminalPanel, cleanupTerminal } from './TerminalPanel'
 export { VirtualList, calculateVisibleRange } from './VirtualList'
 export { SystemMonitor } from './SystemMonitor'
 export { LoginHistory } from './LoginHistory'

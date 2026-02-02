@@ -3,68 +3,6 @@ import { useTabsStore } from '../store'
 import type { Tab } from '../types'
 
 /**
- * 标签页下拉菜单组件
- */
-interface TabDropdownProps {
-  tabs: Tab[]
-  activeTabId: string | null
-  onSelect: (tabId: string) => void
-  onClose: () => void
-}
-
-function TabDropdown({ tabs, activeTabId, onSelect, onClose }: TabDropdownProps) {
-  const dropdownRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        onClose()
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [onClose])
-
-  return (
-    <div
-      ref={dropdownRef}
-      className="
-        absolute top-full right-0 mt-1 z-50
-        bg-surface border border-border rounded-lg shadow-lg
-        min-w-[200px] max-h-[300px] overflow-y-auto
-        animate-fade-in
-      "
-    >
-      {tabs.map((tab) => (
-        <button
-          key={tab.id}
-          onClick={() => {
-            onSelect(tab.id)
-            onClose()
-          }}
-          className={`
-            w-full flex items-center gap-2 px-3 py-2 text-left text-sm
-            transition-colors duration-150
-            ${tab.id === activeTabId
-              ? 'bg-primary/20 text-white'
-              : 'text-secondary hover:bg-surface hover:text-white'
-            }
-          `}
-        >
-          <span
-            className={`
-              w-2 h-2 rounded-full flex-shrink-0
-              ${tab.isConnected ? 'bg-success' : 'bg-secondary'}
-            `}
-          />
-          <span className="truncate">{tab.name}</span>
-        </button>
-      ))}
-    </div>
-  )
-}
-
-/**
  * 计算标签页是否溢出
  */
 export function calculateTabOverflow(
@@ -148,13 +86,20 @@ function TabItem({
     <div
       className={`
         group flex items-center gap-2 px-3 py-2 min-w-[120px] max-w-[200px]
-        cursor-pointer select-none transition-all duration-150
-        border-r border-border
+        cursor-pointer select-none transition-all duration-200 ease-out
+        relative first:rounded-l-lg last:rounded-r-lg
         ${isActive
-          ? 'bg-surface text-white'
-          : 'bg-background/50 text-secondary hover:bg-surface/50 hover:text-white'
+          ? 'bg-primary/40 text-white scale-[1.02] shadow-lg'
+          : 'bg-black/20 text-secondary/50 hover:bg-white/10 hover:text-white hover:scale-[1.01]'
         }
       `}
+      style={isActive ? {
+        boxShadow: '0 0 25px rgba(0, 212, 255, 0.35), inset 0 0 20px rgba(0, 212, 255, 0.1)',
+        borderRadius: '8px',
+        border: '1px solid rgba(0, 212, 255, 0.3)',
+      } : {
+        borderRadius: '8px',
+      }}
       onClick={onSelect}
       onDoubleClick={handleDoubleClick}
       draggable={!isEditing}
@@ -165,9 +110,10 @@ function TabItem({
       {/* 连接状态指示器 */}
       <span
         className={`
-          w-2 h-2 rounded-full flex-shrink-0
+          w-2 h-2 rounded-full flex-shrink-0 transition-shadow duration-300
           ${tab.isConnected ? 'bg-success' : 'bg-secondary'}
         `}
+        style={tab.isConnected ? { boxShadow: '0 0 8px rgba(0, 255, 136, 0.6)' } : undefined}
       />
 
       {/* 标签名称 */}
@@ -183,6 +129,7 @@ function TabItem({
             flex-1 min-w-0 bg-transparent border-b border-primary
             outline-none text-sm text-white
           "
+          style={{ boxShadow: '0 1px 0 var(--color-primary)' }}
         />
       ) : (
         <span className="flex-1 min-w-0 truncate text-sm">{tab.name}</span>
@@ -193,9 +140,9 @@ function TabItem({
         onClick={handleCloseClick}
         className={`
           flex-shrink-0 w-5 h-5 rounded flex items-center justify-center
-          transition-colors duration-150
+          transition-all duration-150
           ${isActive
-            ? 'hover:bg-error/20 text-secondary hover:text-error'
+            ? 'hover:bg-error/20 text-secondary hover:text-error hover:shadow-[0_0_8px_rgba(255,71,87,0.4)]'
             : 'opacity-0 group-hover:opacity-100 hover:bg-error/20 text-secondary hover:text-error'
           }
         `}
@@ -223,7 +170,6 @@ export function TabBar({ onAddConnection }: TabBarProps = {}) {
   const [isOverflowing, setIsOverflowing] = useState(false)
   const [scrollPosition, setScrollPosition] = useState(0)
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
-  const [showDropdown, setShowDropdown] = useState(false)
 
   // 检测溢出
   const checkOverflow = useCallback(() => {
@@ -296,7 +242,7 @@ export function TabBar({ onAddConnection }: TabBarProps = {}) {
   return (
     <div
       ref={containerRef}
-      className="flex items-center bg-background border-b border-border h-10"
+      className="flex items-center h-10 mx-2 mt-2 rounded-xl overflow-hidden bg-surface border border-border"
     >
       {/* 左滚动按钮 */}
       {isOverflowing && (
@@ -305,10 +251,10 @@ export function TabBar({ onAddConnection }: TabBarProps = {}) {
           disabled={!canScrollLeft}
           className={`
             flex-shrink-0 w-8 h-full flex items-center justify-center
-            border-r border-border transition-colors duration-150
+            backdrop-blur-sm transition-all duration-200
             ${canScrollLeft
-              ? 'hover:bg-surface text-secondary hover:text-white'
-              : 'text-secondary/30 cursor-not-allowed'
+              ? 'hover:bg-primary/20 text-secondary hover:text-primary bg-surface'
+              : 'text-secondary/30 cursor-not-allowed bg-surface/50'
             }
           `}
           title="向左滚动"
@@ -349,10 +295,10 @@ export function TabBar({ onAddConnection }: TabBarProps = {}) {
           disabled={!canScrollRight}
           className={`
             flex-shrink-0 w-8 h-full flex items-center justify-center
-            border-l border-border transition-colors duration-150
+            backdrop-blur-sm transition-all duration-200
             ${canScrollRight
-              ? 'hover:bg-surface text-secondary hover:text-white'
-              : 'text-secondary/30 cursor-not-allowed'
+              ? 'hover:bg-primary/20 text-secondary hover:text-primary bg-surface'
+              : 'text-secondary/30 cursor-not-allowed bg-surface/50'
             }
           `}
           title="向右滚动"
@@ -363,45 +309,22 @@ export function TabBar({ onAddConnection }: TabBarProps = {}) {
         </button>
       )}
 
-      {/* 标签页列表下拉菜单 */}
-      {isOverflowing && (
-        <div className="relative">
-          <button
-            onClick={() => setShowDropdown(!showDropdown)}
-            className={`
-              flex-shrink-0 w-8 h-full flex items-center justify-center
-              border-l border-border transition-colors duration-150
-              ${showDropdown
-                ? 'bg-surface text-white'
-                : 'hover:bg-surface text-secondary hover:text-white'
-              }
-            `}
-            title="显示所有标签页"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-          {showDropdown && (
-            <TabDropdown
-              tabs={tabs}
-              activeTabId={activeTabId}
-              onSelect={setActiveTab}
-              onClose={() => setShowDropdown(false)}
-            />
-          )}
-        </div>
-      )}
-
       {/* 新建连接按钮 */}
       {onAddConnection && (
         <button
           onClick={onAddConnection}
           className="
             flex-shrink-0 w-10 h-full flex items-center justify-center
-            border-l border-border transition-colors duration-150
-            hover:bg-surface text-secondary hover:text-success
+            backdrop-blur-sm transition-all duration-200 bg-surface
+            hover:bg-success/20 text-secondary hover:text-success
           "
+          style={{ transition: 'all 200ms ease-out' }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.boxShadow = '0 0 15px rgba(0, 255, 136, 0.2)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.boxShadow = 'none'
+          }}
           title="添加新连接"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

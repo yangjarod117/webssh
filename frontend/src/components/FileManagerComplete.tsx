@@ -8,11 +8,15 @@ import { createFile, createDirectory, renameFile, deleteFile, deleteDirectory, c
 import type { FileItem, ContextMenuPosition, TransferProgress } from '../types'
 
 export interface FileManagerCompleteProps {
-  sessionId: string
-  onFileOpen?: (file: FileItem) => void
-  onFileEdit?: (file: FileItem) => void
-  onOpenTerminalInDir?: (path: string) => void
+  sessionId: string; onFileOpen?: (file: FileItem) => void; onFileEdit?: (file: FileItem) => void; onOpenTerminalInDir?: (path: string) => void
 }
+
+const formatSize = (bytes: number) => {
+  if (bytes === 0) return '0 B'
+  const k = 1024, s = ['B', 'KB', 'MB', 'GB'], i = Math.floor(Math.log(bytes) / Math.log(k))
+  return `${(bytes / Math.pow(k, i)).toFixed(1)} ${s[i]}`
+}
+const formatSpeed = (bps: number) => bps < 1024 ? `${bps.toFixed(0)} B/s` : bps < 1048576 ? `${(bps / 1024).toFixed(1)} KB/s` : `${(bps / 1048576).toFixed(1)} MB/s`
 
 export function FileManagerComplete({ sessionId, onFileOpen, onFileEdit, onOpenTerminalInDir }: FileManagerCompleteProps) {
   const [currentPath, setCurrentPath] = useState('/')
@@ -20,10 +24,7 @@ export function FileManagerComplete({ sessionId, onFileOpen, onFileEdit, onOpenT
   const [files, setFiles] = useState<FileItem[]>([])
   const [refreshKey, setRefreshKey] = useState(0)
   const [contextMenu, setContextMenu] = useState<{ file: FileItem; position: ContextMenuPosition } | null>(null)
-  const [newFileDialog, setNewFileDialog] = useState(false)
-  const [newFolderDialog, setNewFolderDialog] = useState(false)
-  const [renameDialog, setRenameDialog] = useState(false)
-  const [deleteDialog, setDeleteDialog] = useState(false)
+  const [dialogs, setDialogs] = useState({ newFile: false, newFolder: false, rename: false, delete: false })
   const [isLoading, setIsLoading] = useState(false)
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
   const [isDragging, setIsDragging] = useState(false)
@@ -41,12 +42,10 @@ export function FileManagerComplete({ sessionId, onFileOpen, onFileEdit, onOpenT
   useEffect(() => { loadFiles() }, [loadFiles, refreshKey])
 
   const refresh = useCallback(() => setRefreshKey(k => k + 1), [])
-  const showToast = (type: 'success' | 'error', message: string) => {
-    setToast({ type, message })
-    setTimeout(() => setToast(null), 3000)
-  }
+  const showToast = (type: 'success' | 'error', message: string) => { setToast({ type, message }); setTimeout(() => setToast(null), 3000) }
   const closeContextMenu = () => setContextMenu(null)
   const getTargetPath = () => selectedFile?.type === 'directory' ? selectedFile.path : currentPath
+  const setDialog = (key: keyof typeof dialogs, val: boolean) => setDialogs(d => ({ ...d, [key]: val }))
 
   const uploadFile = useCallback(async (file: File, targetPath: string, overwrite = false): Promise<boolean> => {
     if (!overwrite && detectFileConflict(files, file.name)) {
@@ -106,7 +105,8 @@ export function FileManagerComplete({ sessionId, onFileOpen, onFileEdit, onOpenT
   const handleDrop = async (e: React.DragEvent) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); await handleFileSelect(e.dataTransfer.files) }
 
   const handleDownload = async () => {
-    if (!selectedFile || selectedFile.type === 'directory') return
+    if (!selectedFile) return
+    if (selectedFile.type === 'directory') { showToast('error', '文件夹下载功能暂未实现'); closeContextMenu(); return }
     try { await downloadFile(sessionId, selectedFile); showToast('success', '下载已开始') }
     catch { showToast('error', '下载失败') }
     closeContextMenu()
@@ -120,17 +120,17 @@ export function FileManagerComplete({ sessionId, onFileOpen, onFileEdit, onOpenT
 
   const handleEdit = () => { if (selectedFile) { onFileEdit?.(selectedFile); closeContextMenu() } }
 
-  const handleFileOp = async (op: () => Promise<void>, successMsg: string, closeDialog: () => void) => {
+  const handleFileOp = async (op: () => Promise<void>, successMsg: string, dialogKey: keyof typeof dialogs) => {
     setIsLoading(true)
-    try { await op(); showToast('success', successMsg); refresh(); closeDialog() }
+    try { await op(); showToast('success', successMsg); refresh(); setDialog(dialogKey, false) }
     catch (e) { showToast('error', e instanceof Error ? e.message : '操作失败') }
     finally { setIsLoading(false) }
   }
 
-  const handleNewFile = (name: string) => handleFileOp(() => createFile(sessionId, joinPath(getTargetPath(), name)), '文件创建成功', () => setNewFileDialog(false))
-  const handleNewFolder = (name: string) => handleFileOp(() => createDirectory(sessionId, joinPath(getTargetPath(), name)), '文件夹创建成功', () => setNewFolderDialog(false))
-  const handleRename = (newName: string) => { if (selectedFile) handleFileOp(() => renameFile(sessionId, selectedFile.path, joinPath(getParentPath(selectedFile.path), newName)), '重命名成功', () => setRenameDialog(false)) }
-  const handleDelete = () => { if (selectedFile) handleFileOp(() => selectedFile.type === 'directory' ? deleteDirectory(sessionId, selectedFile.path) : deleteFile(sessionId, selectedFile.path), '删除成功', () => { setDeleteDialog(false); setSelectedFile(null) }) }
+  const handleNewFile = (name: string) => handleFileOp(() => createFile(sessionId, joinPath(getTargetPath(), name)), '文件创建成功', 'newFile')
+  const handleNewFolder = (name: string) => handleFileOp(() => createDirectory(sessionId, joinPath(getTargetPath(), name)), '文件夹创建成功', 'newFolder')
+  const handleRename = (newName: string) => { if (selectedFile) handleFileOp(() => renameFile(sessionId, selectedFile.path, joinPath(getParentPath(selectedFile.path), newName)), '重命名成功', 'rename') }
+  const handleDelete = () => { if (selectedFile) handleFileOp(async () => { await (selectedFile.type === 'directory' ? deleteDirectory : deleteFile)(sessionId, selectedFile.path); setSelectedFile(null) }, '删除成功', 'delete') }
 
   const handleCopyPath = async () => {
     if (!selectedFile) return
@@ -143,17 +143,14 @@ export function FileManagerComplete({ sessionId, onFileOpen, onFileEdit, onOpenT
 
   const menuItems = contextMenu ? generateContextMenuItems({
     file: contextMenu.file, onOpen: handleOpen, onEdit: handleEdit,
-    onRename: () => { setRenameDialog(true); closeContextMenu() },
-    onDelete: () => { setDeleteDialog(true); closeContextMenu() },
+    onRename: () => { setDialog('rename', true); closeContextMenu() },
+    onDelete: () => { setDialog('delete', true); closeContextMenu() },
     onCopyPath: handleCopyPath, onDownload: handleDownload,
     onUpload: () => fileInputRef.current?.click(),
-    onNewFile: () => { setNewFileDialog(true); closeContextMenu() },
-    onNewFolder: () => { setNewFolderDialog(true); closeContextMenu() },
+    onNewFile: () => { setDialog('newFile', true); closeContextMenu() },
+    onNewFolder: () => { setDialog('newFolder', true); closeContextMenu() },
     onOpenTerminal: handleOpenTerminal,
   }) : []
-
-  const formatSize = (bytes: number) => bytes < 1024 ? `${bytes} B` : bytes < 1048576 ? `${(bytes / 1024).toFixed(1)} KB` : bytes < 1073741824 ? `${(bytes / 1048576).toFixed(1)} MB` : `${(bytes / 1073741824).toFixed(1)} GB`
-  const formatSpeed = (bps: number) => bps < 1024 ? `${bps.toFixed(0)} B/s` : bps < 1048576 ? `${(bps / 1024).toFixed(1)} KB/s` : `${(bps / 1048576).toFixed(1)} MB/s`
 
   return (
     <div className="relative h-full" onDragEnter={handleDragEnter} onDragLeave={handleDragLeave} onDragOver={handleDragOver} onDrop={handleDrop}>
@@ -174,10 +171,10 @@ export function FileManagerComplete({ sessionId, onFileOpen, onFileEdit, onOpenT
 
       {contextMenu && <ContextMenu items={menuItems} position={contextMenu.position} onClose={closeContextMenu} />}
 
-      <InputDialog isOpen={newFileDialog} onClose={() => setNewFileDialog(false)} onConfirm={handleNewFile} title="新建文件" placeholder="请输入文件名" confirmText="创建" isLoading={isLoading} validator={validateFileName} />
-      <InputDialog isOpen={newFolderDialog} onClose={() => setNewFolderDialog(false)} onConfirm={handleNewFolder} title="新建文件夹" placeholder="请输入文件夹名" confirmText="创建" isLoading={isLoading} validator={validateFileName} />
-      <InputDialog isOpen={renameDialog} onClose={() => setRenameDialog(false)} onConfirm={handleRename} title="重命名" placeholder="请输入新名称" defaultValue={selectedFile?.name || ''} confirmText="重命名" isLoading={isLoading} validator={validateFileName} />
-      <ConfirmDialog isOpen={deleteDialog} onClose={() => setDeleteDialog(false)} onConfirm={handleDelete} title="确认删除" message={`确定要删除 "${selectedFile?.name}" 吗？此操作无法撤销。`} confirmText="删除" danger isLoading={isLoading} />
+      <InputDialog isOpen={dialogs.newFile} onClose={() => setDialog('newFile', false)} onConfirm={handleNewFile} title="新建文件" placeholder="请输入文件名" confirmText="创建" isLoading={isLoading} validator={validateFileName} />
+      <InputDialog isOpen={dialogs.newFolder} onClose={() => setDialog('newFolder', false)} onConfirm={handleNewFolder} title="新建文件夹" placeholder="请输入文件夹名" confirmText="创建" isLoading={isLoading} validator={validateFileName} />
+      <InputDialog isOpen={dialogs.rename} onClose={() => setDialog('rename', false)} onConfirm={handleRename} title="重命名" placeholder="请输入新名称" defaultValue={selectedFile?.name || ''} confirmText="重命名" isLoading={isLoading} validator={validateFileName} />
+      <ConfirmDialog isOpen={dialogs.delete} onClose={() => setDialog('delete', false)} onConfirm={handleDelete} title="确认删除" message={`确定要删除 "${selectedFile?.name}" 吗？此操作无法撤销。`} confirmText="删除" danger isLoading={isLoading} />
 
       {conflictDialog && <FileConflictDialog isOpen={true} fileName={conflictDialog.fileName} onOverwrite={conflictDialog.onOverwrite} onSkip={conflictDialog.onSkip} onCancel={() => { conflictDialog.onSkip(); setConflictDialog(null) }} />}
 

@@ -180,6 +180,39 @@ function AppContent() {
     }
   }, [tabs.length])
 
+  // 页面关闭/刷新时断开所有连接
+  useEffect(() => {
+    const disconnectAllSessions = () => {
+      // 使用 sendBeacon 发送断开请求（即使页面关闭也能发送）
+      sessions.forEach((session) => {
+        if (session.status === 'connected') {
+          // sendBeacon 是异步的，但在页面关闭时仍能发送
+          navigator.sendBeacon(`/api/sessions/${session.id}/disconnect`, '')
+        }
+      })
+    }
+
+    // 监听页面关闭事件
+    const handleBeforeUnload = () => {
+      disconnectAllSessions()
+    }
+
+    // 监听页面可见性变化（用于移动端）
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        // 页面隐藏时不断开，只在真正关闭时断开
+      }
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [sessions])
+
   return (
     <div className="min-h-screen bg-background text-text" style={{ fontFamily: uiFontFamily }}>
       {/* 跳过导航链接 (无障碍) */}

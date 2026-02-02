@@ -128,24 +128,34 @@ export class SSHManager {
   }
 
   /**
-   * 创建 Shell
+   * 创建 Shell - 返回 shell stream 以便调用者立即设置监听器
    */
-  async createShell(sessionId: string, cols = 80, rows = 24): Promise<void> {
+  async createShell(sessionId: string, cols = 80, rows = 24): Promise<NodeJS.ReadWriteStream | null> {
     const session = this.sessions.get(sessionId)
     if (!session || session.status !== 'connected') {
       throw new Error('Session not connected')
     }
 
+    // 如果已有 shell，不重复创建
+    if (session.shell) {
+      console.log(`[SSHManager] Shell already exists for session ${sessionId}`)
+      return session.shell
+    }
+
     return new Promise((resolve, reject) => {
+      console.log(`[SSHManager] Creating shell for session ${sessionId} with cols=${cols}, rows=${rows}`)
       session.connection.shell(
         { cols, rows, term: 'xterm-256color' },
         (err, stream) => {
           if (err) {
+            console.error(`[SSHManager] Failed to create shell for session ${sessionId}:`, err)
             reject(err)
             return
           }
+          console.log(`[SSHManager] Shell created successfully for session ${sessionId}`)
           session.shell = stream
-          resolve()
+          // 返回 stream 以便调用者立即设置监听器
+          resolve(stream)
         }
       )
     })

@@ -1,12 +1,8 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import type { FileItem } from '../types'
 import { VirtualList } from './VirtualList'
 
-const FILE_ITEM_HEIGHT = 24
-const VIRTUAL_SCROLL_THRESHOLD = 100
-const DEFAULT_COLUMN_WIDTHS = { size: 55, time: 115 }
-const MIN_COLUMN_WIDTH = 40
-const MAX_COLUMN_WIDTH = 200
+const FILE_ITEM_HEIGHT = 24, VIRTUAL_THRESHOLD = 100, COL_WIDTHS = { size: 55, time: 115 }
 
 const FILE_COLORS: Record<string, string> = {
   ts: 'text-blue-400', tsx: 'text-blue-400', js: 'text-yellow-400', jsx: 'text-yellow-400',
@@ -16,57 +12,47 @@ const FILE_COLORS: Record<string, string> = {
   sh: 'text-green-500', bash: 'text-green-500', html: 'text-orange-500',
 }
 
-function FileIcon({ type, name }: { type: FileItem['type']; name: string }) {
+const FileIcon = ({ type, name }: { type: FileItem['type']; name: string }) => {
   if (type === 'directory') return <svg className="w-5 h-5 text-yellow-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" /></svg>
   if (type === 'symlink') return <svg className="w-5 h-5 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
   const ext = name.split('.').pop()?.toLowerCase() || ''
   return <svg className={`w-5 h-5 flex-shrink-0 ${FILE_COLORS[ext] || 'text-secondary'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
 }
 
-export function formatFileSize(bytes: number): string {
+export const formatFileSize = (bytes: number) => {
   if (bytes === 0) return '0 B'
-  const k = 1024, sizes = ['B', 'KB', 'MB', 'GB', 'TB'], i = Math.floor(Math.log(bytes) / Math.log(k))
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`
+  const k = 1024, s = ['B', 'KB', 'MB', 'GB', 'TB'], i = Math.floor(Math.log(bytes) / Math.log(k))
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${s[i]}`
 }
 
-function formatDateTime(date: Date): string {
+const formatDateTime = (date: Date) => {
   if (isNaN(date.getTime())) return '--'
   try { return new Intl.DateTimeFormat('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).format(date) }
   catch { return '--' }
 }
 
-interface FileItemRowProps { file: FileItem; isSelected: boolean; onSelect: () => void; onDoubleClick: () => void; onContextMenu: (e: React.MouseEvent) => void; columnWidths: { size: number; time: number } }
+const FileRow = ({ file, selected, onSelect, onDblClick, onCtx }: { file: FileItem; selected: boolean; onSelect: () => void; onDblClick: () => void; onCtx: (e: React.MouseEvent) => void }) => (
+  <div className={`flex items-center px-3 cursor-pointer transition-all duration-150 select-none rounded-lg mx-1 ${selected ? 'bg-primary/25 text-primary scale-[1.01]' : 'hover:bg-white/10 text-secondary hover:text-white hover:scale-[1.01]'}`}
+    style={{ height: FILE_ITEM_HEIGHT }} onClick={onSelect} onDoubleClick={onDblClick} onContextMenu={onCtx}>
+    <div className="flex items-center gap-2 flex-1 min-w-0 h-full"><FileIcon type={file.type} name={file.name} /><span className="flex-1 min-w-0 truncate text-sm">{file.name}</span></div>
+    <span className="text-xs text-secondary/70 text-left flex-shrink-0 px-2 truncate" style={{ width: COL_WIDTHS.size }}>{file.type === 'directory' ? '文件夹' : formatFileSize(file.size)}</span>
+    <span className="text-xs text-secondary/70 text-left flex-shrink-0 px-2 truncate hidden md:block" style={{ width: COL_WIDTHS.time }}>{formatDateTime(new Date(file.modifiedTime))}</span>
+  </div>
+)
 
-function FileItemRow({ file, isSelected, onSelect, onDoubleClick, onContextMenu, columnWidths }: FileItemRowProps) {
-  return (
-    <div className={`flex items-center px-3 cursor-pointer transition-colors duration-150 select-none ${isSelected ? 'bg-primary/20 text-primary' : 'hover:bg-surface/50 text-secondary hover:text-primary'}`}
-      style={{ height: `${FILE_ITEM_HEIGHT}px` }} onClick={onSelect} onDoubleClick={onDoubleClick} onContextMenu={onContextMenu}>
-      <div className="flex items-center gap-2 flex-1 min-w-0 h-full">
-        <FileIcon type={file.type} name={file.name} />
-        <span className="flex-1 min-w-0 truncate text-sm">{file.name}</span>
-      </div>
-      <div className="w-px h-full flex-shrink-0 bg-border" />
-      <span className="text-xs text-secondary/70 text-left flex-shrink-0 pl-1 pr-0 truncate" style={{ width: columnWidths.size }}>{file.type === 'directory' ? '文件夹' : formatFileSize(file.size)}</span>
-      <div className="w-px h-full flex-shrink-0 hidden md:block bg-border" />
-      <span className="text-xs text-secondary/70 text-left flex-shrink-0 pl-1 pr-0 truncate hidden md:block" style={{ width: columnWidths.time }}>{formatDateTime(new Date(file.modifiedTime))}</span>
-    </div>
-  )
-}
-
-function PathBreadcrumb({ path, onNavigate }: { path: string; onNavigate: (path: string) => void }) {
+const Breadcrumb = ({ path, onNav }: { path: string; onNav: (p: string) => void }) => {
   const parts = path.split('/').filter(Boolean)
   return (
-    <div className="flex items-center gap-1 px-3 py-2 bg-surface/30 border-b border-border overflow-x-auto">
-      <button onClick={() => onNavigate('/')} className="flex items-center gap-1 px-2 py-1 rounded text-sm text-secondary hover:text-white hover:bg-surface transition-colors duration-150">
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
-        <span>/</span>
+    <div className="flex items-center gap-1 px-3 py-2 bg-surface/50 border-b border-border overflow-x-auto">
+      <button onClick={() => onNav('/')} className="flex items-center gap-1 px-2 py-1 rounded-lg backdrop-blur-sm text-sm text-secondary hover:text-text bg-surface hover:bg-primary/20 transition-all border border-border">
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg><span>/</span>
       </button>
       {parts.map((part, i) => {
-        const partPath = '/' + parts.slice(0, i + 1).join('/'), isLast = i === parts.length - 1
+        const p = '/' + parts.slice(0, i + 1).join('/'), last = i === parts.length - 1
         return (
-          <div key={partPath} className="flex items-center gap-1">
+          <div key={p} className="flex items-center gap-1">
             <svg className="w-4 h-4 text-secondary/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-            <button onClick={() => onNavigate(partPath)} className={`px-2 py-1 rounded text-sm transition-colors duration-150 ${isLast ? 'text-white font-medium' : 'text-secondary hover:text-white hover:bg-surface'}`}>{part}</button>
+            <button onClick={() => onNav(p)} className={`px-2 py-1 rounded-lg backdrop-blur-sm text-sm transition-all border ${last ? 'text-text font-medium bg-primary/20 border-primary/40' : 'text-secondary hover:text-text bg-surface hover:bg-primary/20 border-border'}`}>{part}</button>
           </div>
         )
       })}
@@ -75,114 +61,67 @@ function PathBreadcrumb({ path, onNavigate }: { path: string; onNavigate: (path:
 }
 
 export interface FileExplorerProps {
-  sessionId: string; currentPath: string; onPathChange: (path: string) => void
-  onFileSelect: (file: FileItem) => void; onFileDoubleClick: (file: FileItem) => void
-  onContextMenu?: (file: FileItem, position: { x: number; y: number }) => void
+  sessionId: string; currentPath: string; onPathChange: (p: string) => void
+  onFileSelect: (f: FileItem) => void; onFileDoubleClick: (f: FileItem) => void
+  onContextMenu?: (f: FileItem, pos: { x: number; y: number }) => void
 }
 
 export function FileExplorer({ sessionId, currentPath, onPathChange, onFileSelect, onFileDoubleClick, onContextMenu }: FileExplorerProps) {
   const [files, setFiles] = useState<FileItem[]>([])
-  const [selectedFile, setSelectedFile] = useState<FileItem | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
+  const [selected, setSelected] = useState<FileItem | null>(null)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [columnWidths, setColumnWidths] = useState(DEFAULT_COLUMN_WIDTHS)
-  const resizingRef = useRef<'size' | 'time' | null>(null)
-  const resizeStartX = useRef(0)
-  const resizeStartWidth = useRef(0)
-  const clickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const clickCountRef = useRef(0)
 
-  const handleResizeStart = (column: 'size' | 'time', e: React.MouseEvent) => {
-    e.preventDefault(); e.stopPropagation()
-    clickCountRef.current++
-    if (clickCountRef.current === 1) {
-      clickTimeoutRef.current = setTimeout(() => { clickCountRef.current = 0; startDrag(column, e.clientX) }, 200)
-    } else if (clickCountRef.current === 2) {
-      if (clickTimeoutRef.current) clearTimeout(clickTimeoutRef.current)
-      clickCountRef.current = 0
-      setColumnWidths(prev => ({ ...prev, [column]: DEFAULT_COLUMN_WIDTHS[column] }))
-    }
-  }
-
-  const startDrag = (column: 'size' | 'time', clientX: number) => {
-    resizingRef.current = column; resizeStartX.current = clientX; resizeStartWidth.current = columnWidths[column]
-    document.body.style.cursor = 'col-resize'; document.body.style.userSelect = 'none'
-    const handleMouseMove = (e: MouseEvent) => {
-      e.preventDefault(); e.stopPropagation()
-      if (!resizingRef.current) return
-      const diff = resizeStartX.current - e.clientX
-      setColumnWidths(prev => ({ ...prev, [resizingRef.current!]: Math.max(MIN_COLUMN_WIDTH, Math.min(MAX_COLUMN_WIDTH, resizeStartWidth.current + diff)) }))
-    }
-    const handleMouseUp = (e: MouseEvent) => {
-      e.preventDefault(); e.stopPropagation(); resizingRef.current = null
-      document.body.style.cursor = ''; document.body.style.userSelect = ''
-      document.removeEventListener('mousemove', handleMouseMove, true)
-      document.removeEventListener('mouseup', handleMouseUp, true)
-    }
-    document.addEventListener('mousemove', handleMouseMove, true)
-    document.addEventListener('mouseup', handleMouseUp, true)
-  }
-
-  const loadDirectory = useCallback(async (path: string) => {
+  const load = useCallback(async (path: string) => {
     if (!sessionId) return
-    setIsLoading(true); setError(null)
+    setLoading(true); setError(null)
     try {
-      const response = await fetch(`/api/sessions/${sessionId}/files?path=${encodeURIComponent(path)}`)
-      if (!response.ok) throw new Error((await response.json()).message || '加载目录失败')
-      const data = await response.json()
-      setFiles((data.files as FileItem[]).sort((a, b) => {
+      const res = await fetch(`/api/sessions/${sessionId}/files?path=${encodeURIComponent(path)}`)
+      if (!res.ok) throw new Error((await res.json()).message || '加载目录失败')
+      setFiles((await res.json()).files.sort((a: FileItem, b: FileItem) => {
         if (a.type === 'directory' && b.type !== 'directory') return -1
         if (a.type !== 'directory' && b.type === 'directory') return 1
         return a.name.localeCompare(b.name)
       }))
     } catch (e) { setError(e instanceof Error ? e.message : '加载目录失败') }
-    finally { setIsLoading(false) }
+    finally { setLoading(false) }
   }, [sessionId])
 
-  useEffect(() => { loadDirectory(currentPath) }, [currentPath, loadDirectory])
+  useEffect(() => { load(currentPath) }, [currentPath, load])
 
-  const handleSelect = (file: FileItem) => { setSelectedFile(file); onFileSelect(file) }
-  const handleDoubleClick = (file: FileItem) => {
-    if (file.type === 'directory') onPathChange(currentPath === '/' ? `/${file.name}` : `${currentPath}/${file.name}`)
-    else onFileDoubleClick(file)
-  }
-  const handleContextMenu = (e: React.MouseEvent, file: FileItem) => { e.preventDefault(); setSelectedFile(file); onFileSelect(file); onContextMenu?.(file, { x: e.clientX, y: e.clientY }) }
-  const handleGoUp = () => {
-    if (currentPath === '/') return
-    const parts = currentPath.split('/').filter(Boolean); parts.pop()
-    onPathChange(parts.length === 0 ? '/' : '/' + parts.join('/'))
+  const select = (f: FileItem) => { setSelected(f); onFileSelect(f) }
+  const dblClick = (f: FileItem) => f.type === 'directory' ? onPathChange(currentPath === '/' ? `/${f.name}` : `${currentPath}/${f.name}`) : onFileDoubleClick(f)
+  const ctx = (e: React.MouseEvent, f: FileItem) => { e.preventDefault(); setSelected(f); onFileSelect(f); onContextMenu?.(f, { x: e.clientX, y: e.clientY }) }
+  const goUp = () => { if (currentPath === '/') return; const p = currentPath.split('/').filter(Boolean); p.pop(); onPathChange(p.length ? '/' + p.join('/') : '/') }
+
+  const renderList = () => {
+    if (loading) return <div className="flex items-center justify-center h-32"><div className="flex items-center gap-2 text-secondary"><svg className="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg><span>加载中...</span></div></div>
+    if (error) return <div className="flex flex-col items-center justify-center h-32 gap-2"><svg className="w-8 h-8 text-error" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg><span className="text-error text-sm">{error}</span><button onClick={() => load(currentPath)} className="px-3 py-1 text-sm bg-surface hover:bg-surface/80 rounded transition-colors">重试</button></div>
+    if (!files.length) return <div className="flex flex-col items-center justify-center h-32 text-secondary"><svg className="w-8 h-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" /></svg><span className="text-sm">空目录</span></div>
+    const row = (f: FileItem) => <FileRow key={f.path} file={f} selected={selected?.path === f.path} onSelect={() => select(f)} onDblClick={() => dblClick(f)} onCtx={e => ctx(e, f)} />
+    return files.length > VIRTUAL_THRESHOLD ? <VirtualList items={files} itemHeight={FILE_ITEM_HEIGHT} renderItem={row} getKey={f => f.path} className="h-full" /> : <div className="h-full overflow-y-auto">{files.map(row)}</div>
   }
 
-  const renderFileList = () => {
-    if (isLoading) return <div className="flex items-center justify-center h-32"><div className="flex items-center gap-2 text-secondary"><svg className="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg><span>加载中...</span></div></div>
-    if (error) return <div className="flex flex-col items-center justify-center h-32 gap-2"><svg className="w-8 h-8 text-error" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg><span className="text-error text-sm">{error}</span><button onClick={() => loadDirectory(currentPath)} className="px-3 py-1 text-sm bg-surface hover:bg-surface/80 rounded transition-colors">重试</button></div>
-    if (files.length === 0) return <div className="flex flex-col items-center justify-center h-32 text-secondary"><svg className="w-8 h-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" /></svg><span className="text-sm">空目录</span></div>
-    const renderRow = (file: FileItem) => <FileItemRow key={file.path} file={file} isSelected={selectedFile?.path === file.path} onSelect={() => handleSelect(file)} onDoubleClick={() => handleDoubleClick(file)} onContextMenu={e => handleContextMenu(e, file)} columnWidths={columnWidths} />
-    return files.length > VIRTUAL_SCROLL_THRESHOLD
-      ? <VirtualList items={files} itemHeight={FILE_ITEM_HEIGHT} renderItem={renderRow} getKey={f => f.path} className="h-full" />
-      : <div className="h-full overflow-y-auto">{files.map(renderRow)}</div>
-  }
+  const btnCls = (disabled: boolean) => `p-1.5 rounded-lg backdrop-blur-sm transition-all border ${disabled ? 'text-secondary/30 cursor-not-allowed bg-surface/50 border-border' : 'text-secondary hover:text-white bg-surface hover:bg-primary/20 border-border'}`
 
   return (
-    <div className="flex flex-col h-full bg-background">
+    <div className="flex flex-col h-full bg-transparent">
       <div className="flex items-center gap-2 px-3 py-2 border-b border-border">
-        <button onClick={handleGoUp} disabled={currentPath === '/'} className={`p-1.5 rounded transition-colors duration-150 ${currentPath === '/' ? 'text-secondary/30 cursor-not-allowed' : 'text-secondary hover:text-white hover:bg-surface'}`} title="返回上级目录">
+        <button onClick={goUp} disabled={currentPath === '/'} className={btnCls(currentPath === '/')} title="返回上级目录">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16l-4-4m0 0l4-4m-4 4h18" /></svg>
         </button>
-        <button onClick={() => loadDirectory(currentPath)} disabled={isLoading} className={`p-1.5 rounded transition-colors duration-150 ${isLoading ? 'text-secondary/30 cursor-not-allowed animate-spin' : 'text-secondary hover:text-white hover:bg-surface'}`} title="刷新">
+        <button onClick={() => load(currentPath)} disabled={loading} className={`${btnCls(loading)} ${loading ? 'animate-spin' : ''}`} title="刷新">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
         </button>
         <div className="flex-1" /><span className="text-xs text-secondary">{files.length} 项</span>
       </div>
-      <PathBreadcrumb path={currentPath} onNavigate={onPathChange} />
-      <div className="flex items-center px-3 border-b border-border bg-surface/30 text-xs text-secondary/70" style={{ height: '28px' }}>
-        <div className="flex items-center gap-2 flex-1 min-w-0 h-full"><span className="w-5 flex-shrink-0"></span><span className="flex-1 min-w-0">名称</span></div>
-        <div className="relative h-full flex-shrink-0 cursor-col-resize group" style={{ width: '9px', marginLeft: '-4px', marginRight: '-4px' }} onMouseDown={e => handleResizeStart('size', e)} title="拖拽调整列宽，双击自动适配"><div className="absolute left-1/2 top-0 bottom-0 w-px bg-border group-hover:bg-primary transition-colors" style={{ transform: 'translateX(-50%)' }} /></div>
-        <span className="text-left flex-shrink-0 pl-1 pr-0" style={{ width: columnWidths.size }}>大小</span>
-        <div className="relative h-full flex-shrink-0 cursor-col-resize group hidden md:block" style={{ width: '9px', marginLeft: '-4px', marginRight: '-4px' }} onMouseDown={e => handleResizeStart('time', e)} title="拖拽调整列宽，双击自动适配"><div className="absolute left-1/2 top-0 bottom-0 w-px bg-border group-hover:bg-primary transition-colors" style={{ transform: 'translateX(-50%)' }} /></div>
-        <span className="text-left flex-shrink-0 pl-1 pr-0 hidden md:block" style={{ width: columnWidths.time }}>修改时间</span>
+      <Breadcrumb path={currentPath} onNav={onPathChange} />
+      <div className="flex items-center px-3 border-b border-border bg-surface/50 text-xs text-secondary/70" style={{ height: 28 }}>
+        <div className="flex items-center gap-2 flex-1 min-w-0 h-full"><span className="w-5 flex-shrink-0" /><span className="flex-1 min-w-0">名称</span></div>
+        <span className="text-left flex-shrink-0 px-2" style={{ width: COL_WIDTHS.size }}>大小</span>
+        <span className="text-left flex-shrink-0 px-2 hidden md:block" style={{ width: COL_WIDTHS.time }}>修改时间</span>
       </div>
-      <div className="flex-1 overflow-hidden">{renderFileList()}</div>
+      <div className="flex-1 overflow-hidden">{renderList()}</div>
     </div>
   )
 }

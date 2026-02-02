@@ -77,13 +77,16 @@ export function ContextMenu({ items, position, onClose }: ContextMenuProps) {
   return (
     <div
       ref={menuRef}
-      className="
-        fixed z-dropdown min-w-[180px]
-        bg-surface border border-border rounded-theme-lg shadow-theme-lg
-        py-1 dropdown-enter
-        backdrop-blur-sm
-      "
-      style={{ left: position.x, top: position.y }}
+      className="fixed z-dropdown min-w-[180px] py-1 rounded-lg overflow-hidden"
+      style={{ 
+        left: position.x, 
+        top: position.y,
+        background: 'rgba(17, 24, 39, 0.95)',
+        backdropFilter: 'blur(16px)',
+        border: '1px solid rgba(0, 212, 255, 0.2)',
+        boxShadow: '0 10px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 212, 255, 0.1)',
+        animation: 'dropdownEnter 200ms cubic-bezier(0.34, 1.56, 0.64, 1)'
+      }}
     >
       <div className="stagger-children">
         {items.map((item, index) => (
@@ -92,16 +95,29 @@ export function ContextMenu({ items, position, onClose }: ContextMenuProps) {
             onClick={() => handleItemClick(item)}
             disabled={item.disabled}
             className={`
-              w-full flex items-center gap-3 px-3 py-2 text-left text-sm
-              transition-all duration-fast
+              w-full flex items-center gap-3 px-3 py-2.5 text-left text-sm
+              transition-all duration-150 relative
               ${item.disabled
                 ? 'text-text-muted cursor-not-allowed'
                 : item.danger
-                  ? 'text-error hover:bg-error/10 active:bg-error/20'
-                  : 'text-text-secondary hover:bg-surface-hover hover:text-text active:bg-primary/10'
+                  ? 'text-error hover:bg-error/15'
+                  : 'text-text-secondary hover:text-text hover:bg-primary/10'
               }
             `}
-            style={{ animationDelay: `${index * 30}ms` }}
+            style={{ 
+              animationDelay: `${index * 30}ms`,
+              transition: 'all 150ms ease-out'
+            }}
+            onMouseEnter={(e) => {
+              if (!item.disabled && !item.danger) {
+                e.currentTarget.style.boxShadow = 'inset 2px 0 0 var(--color-primary)'
+              } else if (!item.disabled && item.danger) {
+                e.currentTarget.style.boxShadow = 'inset 2px 0 0 var(--color-error)'
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.boxShadow = 'none'
+            }}
           >
             {item.icon && (
               <span className="w-4 h-4 flex items-center justify-center flex-shrink-0">
@@ -251,13 +267,13 @@ export function generateContextMenuItems(options: GenerateMenuItemsOptions): Con
     items.push(
       {
         id: 'newFile',
-        label: '新建文件',
+        label: '在此目录下新建文件',
         icon: 'newFile',
         onClick: onNewFile,
       },
       {
         id: 'newFolder',
-        label: '新建文件夹',
+        label: '在此目录下新建文件夹',
         icon: 'newFolder',
         onClick: onNewFolder,
       },

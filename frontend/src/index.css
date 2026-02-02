@@ -8,48 +8,56 @@
    ============================================ */
 
 :root {
-  /* 主色调 */
-  --color-primary: #3b82f6;
-  --color-primary-hover: #2563eb;
-  --color-primary-active: #1d4ed8;
+  /* 主色调 - 科幻蓝紫色系 */
+  --color-primary: #00d4ff;
+  --color-primary-hover: #00b8e6;
+  --color-primary-active: #0099cc;
   --color-secondary: #6b7280;
   --color-secondary-hover: #4b5563;
-  --color-background: #1a1a2e;
-  --color-surface: #16213e;
-  --color-surface-hover: #1e2a4a;
-  --color-border: #374151;
-  --color-border-hover: #4b5563;
-  --color-accent: #8b5cf6;
-  --color-accent-hover: #7c3aed;
-  --color-error: #ef4444;
-  --color-error-hover: #dc2626;
-  --color-success: #22c55e;
-  --color-success-hover: #16a34a;
-  --color-warning: #f59e0b;
-  --color-warning-hover: #d97706;
-  --color-info: #06b6d4;
-  --color-info-hover: #0891b2;
+  --color-background: #0a0e17;
+  --color-surface: #111827;
+  --color-surface-hover: #1a2332;
+  --color-border: #1e3a5f;
+  --color-border-hover: #2d5a8a;
+  --color-accent: #a855f7;
+  --color-accent-hover: #9333ea;
+  --color-error: #ff4757;
+  --color-error-hover: #ff3344;
+  --color-success: #00ff88;
+  --color-success-hover: #00e67a;
+  --color-warning: #ffbe0b;
+  --color-warning-hover: #e6ab00;
+  --color-info: #00d4ff;
+  --color-info-hover: #00b8e6;
   
   /* 文本颜色 */
-  --color-text: #f8fafc;
-  --color-text-secondary: #94a3b8;
-  --color-text-muted: #64748b;
+  --color-text: #e8f4fc;
+  --color-text-secondary: #8ba4b8;
+  --color-text-muted: #5a7a8a;
+  
+  /* 科幻发光色 */
+  --glow-primary: rgba(0, 212, 255, 0.5);
+  --glow-accent: rgba(168, 85, 247, 0.5);
+  --glow-success: rgba(0, 255, 136, 0.5);
+  --glow-error: rgba(255, 71, 87, 0.5);
   
   /* 圆角 */
   --radius-sm: 0.25rem;
-  --radius-md: 0.375rem;
-  --radius-lg: 0.5rem;
-  --radius-xl: 0.75rem;
-  --radius-2xl: 1rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
   --radius-full: 9999px;
   
-  /* 阴影 */
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-  --shadow-glow: 0 0 20px rgb(59 130 246 / 0.3);
-  --shadow-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.1);
+  /* 阴影 - 增强发光效果 */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+  --shadow-md: 0 4px 12px -1px rgb(0 0 0 / 0.4), 0 2px 6px -2px rgb(0 0 0 / 0.3);
+  --shadow-lg: 0 10px 25px -3px rgb(0 0 0 / 0.4), 0 4px 10px -4px rgb(0 0 0 / 0.3);
+  --shadow-xl: 0 20px 40px -5px rgb(0 0 0 / 0.5), 0 8px 16px -6px rgb(0 0 0 / 0.4);
+  --shadow-glow: 0 0 30px var(--glow-primary), 0 0 60px rgba(0, 212, 255, 0.2);
+  --shadow-glow-accent: 0 0 30px var(--glow-accent), 0 0 60px rgba(168, 85, 247, 0.2);
+  --shadow-glow-success: 0 0 20px var(--glow-success);
+  --shadow-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.2);
   
   /* 边框 */
   --border-width: 1px;
@@ -74,10 +82,10 @@
   --spacing-lg: 1.5rem;
   --spacing-xl: 2rem;
   
-  /* 过渡时间 */
-  --transition-fast: 150ms;
-  --transition-normal: 200ms;
-  --transition-slow: 300ms;
+  /* 过渡时间 - 更流畅 */
+  --transition-fast: 120ms;
+  --transition-normal: 250ms;
+  --transition-slow: 400ms;
   
   /* Z-index 层级 */
   --z-dropdown: 50;
@@ -88,32 +96,37 @@
 
 /* 浅色主题 */
 .light {
-  --color-primary: #2563eb;
-  --color-primary-hover: #1d4ed8;
-  --color-primary-active: #1e40af;
+  --color-primary: #0ea5e9;
+  --color-primary-hover: #0284c7;
+  --color-primary-active: #0369a1;
   --color-secondary: #4b5563;
   --color-secondary-hover: #374151;
-  --color-background: #f8fafc;
+  --color-background: #f0f4f8;
   --color-surface: #ffffff;
   --color-surface-hover: #f1f5f9;
-  --color-border: #e5e7eb;
-  --color-border-hover: #d1d5db;
-  --color-accent: #7c3aed;
-  --color-accent-hover: #6d28d9;
-  --color-error: #dc2626;
-  --color-error-hover: #b91c1c;
-  --color-success: #16a34a;
-  --color-success-hover: #15803d;
-  --color-warning: #d97706;
-  --color-warning-hover: #b45309;
-  --color-info: #0891b2;
-  --color-info-hover: #0e7490;
+  --color-border: #d1d9e6;
+  --color-border-hover: #b8c4d4;
+  --color-accent: #8b5cf6;
+  --color-accent-hover: #7c3aed;
+  --color-error: #ef4444;
+  --color-error-hover: #dc2626;
+  --color-success: #10b981;
+  --color-success-hover: #059669;
+  --color-warning: #f59e0b;
+  --color-warning-hover: #d97706;
+  --color-info: #0ea5e9;
+  --color-info-hover: #0284c7;
   
   --color-text: #1e293b;
   --color-text-secondary: #475569;
   --color-text-muted: #94a3b8;
   
-  --shadow-glow: 0 0 20px rgb(37 99 235 / 0.2);
+  --glow-primary: rgba(14, 165, 233, 0.3);
+  --glow-accent: rgba(139, 92, 246, 0.3);
+  --glow-success: rgba(16, 185, 129, 0.3);
+  --glow-error: rgba(239, 68, 68, 0.3);
+  
+  --shadow-glow: 0 0 20px var(--glow-primary), 0 0 40px rgba(14, 165, 233, 0.15);
 }
 
 /* ============================================
@@ -136,8 +149,19 @@ body {
   line-height: 1.5;
   color: var(--color-text);
   background-color: var(--color-background);
+  background-image: 
+    radial-gradient(ellipse at 20% 20%, rgba(0, 212, 255, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 80%, rgba(168, 85, 247, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(0, 212, 255, 0.03) 0%, transparent 70%);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.light body,
+body.light {
+  background-image: 
+    radial-gradient(ellipse at 20% 20%, rgba(14, 165, 233, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 80%, rgba(139, 92, 246, 0.04) 0%, transparent 50%);
 }
 
 /* 确保所有元素继承微软雅黑字体 */
@@ -146,7 +170,7 @@ body {
 }
 
 /* ============================================
-   Scrollbar Styles
+   Scrollbar Styles - 科幻风格
    ============================================ */
 
 ::-webkit-scrollbar {
@@ -155,42 +179,54 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-background);
+  background: rgba(10, 14, 23, 0.5);
   border-radius: var(--radius-full);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-border);
+  background: linear-gradient(180deg, rgba(0, 212, 255, 0.3) 0%, rgba(168, 85, 247, 0.3) 100%);
   border-radius: var(--radius-full);
+  border: 2px solid transparent;
+  background-clip: padding-box;
   transition: background var(--transition-fast);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-border-hover);
+  background: linear-gradient(180deg, rgba(0, 212, 255, 0.5) 0%, rgba(168, 85, 247, 0.5) 100%);
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 /* Firefox scrollbar */
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--color-border) var(--color-background);
+  scrollbar-color: rgba(0, 212, 255, 0.3) rgba(10, 14, 23, 0.5);
 }
 
 /* ============================================
-   Selection Styles
+   Selection Styles - 科幻风格
    ============================================ */
 
 ::selection {
-  background-color: var(--color-primary);
+  background-color: rgba(0, 212, 255, 0.3);
+  color: white;
+}
+
+::-moz-selection {
+  background-color: rgba(0, 212, 255, 0.3);
   color: white;
 }
 
 /* ============================================
-   Focus Styles
+   Focus Styles - 科幻发光
    ============================================ */
 
 :focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-primary), 0 0 15px rgba(0, 212, 255, 0.3);
 }
 
 /* ============================================
@@ -212,26 +248,91 @@ body {
   .shadow-theme-glow { box-shadow: var(--shadow-glow); }
   .shadow-theme-inner { box-shadow: var(--shadow-inner); }
   
-  /* 玻璃态效果 */
+  /* 科幻发光效果 */
+  .glow-primary {
+    box-shadow: 0 0 20px var(--glow-primary), 0 0 40px rgba(0, 212, 255, 0.15);
+  }
+  .glow-accent {
+    box-shadow: 0 0 20px var(--glow-accent), 0 0 40px rgba(168, 85, 247, 0.15);
+  }
+  .glow-success {
+    box-shadow: 0 0 15px var(--glow-success);
+  }
+  .glow-error {
+    box-shadow: 0 0 15px var(--glow-error);
+  }
+  
+  /* 霓虹边框 */
+  .neon-border {
+    border: 1px solid var(--color-primary);
+    box-shadow: 0 0 10px var(--glow-primary), inset 0 0 10px rgba(0, 212, 255, 0.05);
+  }
+  
+  /* 玻璃态效果 - 增强 */
   .glass {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(17, 24, 39, 0.7);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(0, 212, 255, 0.15);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   }
   
   .light .glass {
-    background: rgba(255, 255, 255, 0.7);
-    border: 1px solid rgba(0, 0, 0, 0.1);
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(14, 165, 233, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   }
   
-  /* 渐变背景 */
+  /* 渐变背景 - 科幻风格 */
   .gradient-primary {
     background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
   }
   
   .gradient-surface {
     background: linear-gradient(180deg, var(--color-surface) 0%, var(--color-background) 100%);
+  }
+  
+  .gradient-cyber {
+    background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%);
+  }
+  
+  /* 扫描线效果 */
+  .scanlines::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.03) 2px,
+      rgba(0, 0, 0, 0.03) 4px
+    );
+    pointer-events: none;
+  }
+  
+  /* 闪光效果 */
+  .shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+  .shimmer::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.1),
+      transparent
+    );
+    animation: shimmer 2s infinite;
+  }
+  @keyframes shimmer {
+    100% { left: 100%; }
   }
 }
 
@@ -242,45 +343,87 @@ body {
    ============================================ */
 
 @layer components {
-  /* 基础按钮 */
+  /* 基础按钮 - 科幻风格 */
   .btn {
     @apply inline-flex items-center justify-center gap-2;
     @apply px-4 py-2 text-sm font-medium;
     @apply rounded-lg border border-transparent;
-    @apply transition-all duration-normal;
+    @apply transition-all duration-normal ease-out;
     @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2;
     @apply disabled:opacity-50 disabled:cursor-not-allowed;
-    @apply active:scale-[0.98];
+    @apply active:scale-[0.97];
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 50%);
+    opacity: 0;
+    transition: opacity var(--transition-normal);
+  }
+  
+  .btn:hover::before {
+    opacity: 1;
   }
   
   .btn-primary {
-    @apply bg-primary text-white;
-    @apply hover:bg-primary-hover;
-    @apply focus-visible:ring-primary;
+    @apply text-white;
+    background: linear-gradient(135deg, var(--color-primary) 0%, #0099cc 100%);
+    box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+  }
+  
+  .btn-primary:hover {
+    box-shadow: 0 6px 25px rgba(0, 212, 255, 0.5), 0 0 30px rgba(0, 212, 255, 0.2);
+    transform: translateY(-2px);
+  }
+  
+  .btn-primary:active {
+    transform: translateY(0) scale(0.97);
   }
   
   .btn-secondary {
     @apply bg-surface text-text-secondary border-border;
-    @apply hover:bg-surface-hover hover:text-text hover:border-border-hover;
-    @apply focus-visible:ring-secondary;
+    @apply hover:text-text;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  .btn-secondary:hover {
+    border-color: var(--color-primary);
+    box-shadow: 0 4px 15px rgba(0, 212, 255, 0.15);
   }
   
   .btn-ghost {
     @apply bg-transparent text-text-secondary;
-    @apply hover:bg-surface hover:text-text;
-    @apply focus-visible:ring-secondary;
+    @apply hover:text-text;
+  }
+  
+  .btn-ghost:hover {
+    background: rgba(0, 212, 255, 0.1);
   }
   
   .btn-danger {
-    @apply bg-error text-white;
-    @apply hover:bg-error-hover;
-    @apply focus-visible:ring-error;
+    @apply text-white;
+    background: linear-gradient(135deg, var(--color-error) 0%, #cc2233 100%);
+    box-shadow: 0 4px 15px rgba(255, 71, 87, 0.3);
+  }
+  
+  .btn-danger:hover {
+    box-shadow: 0 6px 25px rgba(255, 71, 87, 0.5);
+    transform: translateY(-2px);
   }
   
   .btn-success {
-    @apply bg-success text-white;
-    @apply hover:bg-success-hover;
-    @apply focus-visible:ring-success;
+    @apply text-black;
+    background: linear-gradient(135deg, var(--color-success) 0%, #00cc6a 100%);
+    box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3);
+  }
+  
+  .btn-success:hover {
+    box-shadow: 0 6px 25px rgba(0, 255, 136, 0.5);
+    transform: translateY(-2px);
   }
   
   .btn-sm {
@@ -295,83 +438,121 @@ body {
     @apply p-2;
   }
   
-  /* 输入框 */
+  /* 输入框 - 科幻风格 */
   .input {
     @apply w-full px-3 py-2;
-    @apply bg-background text-text;
-    @apply border border-border rounded-lg;
+    @apply text-text;
+    @apply rounded-lg;
     @apply placeholder:text-text-muted;
-    @apply transition-all duration-normal;
-    @apply focus:outline-none focus:ring-2 focus:border-primary;
+    @apply transition-all duration-normal ease-out;
+    @apply focus:outline-none;
     @apply disabled:opacity-50 disabled:cursor-not-allowed;
-    --tw-ring-color: rgb(59 130 246 / 0.5);
+    background: rgba(17, 24, 39, 0.6);
+    border: 1px solid var(--color-border);
+  }
+  
+  .input:hover {
+    border-color: var(--color-border-hover);
+  }
+  
+  .input:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.15), 0 0 20px rgba(0, 212, 255, 0.1);
+  }
+  
+  .light .input {
+    background: rgba(255, 255, 255, 0.9);
   }
   
   .input-error {
-    @apply border-error focus:border-error;
-    --tw-ring-color: rgb(239 68 68 / 0.5);
+    border-color: var(--color-error) !important;
   }
   
-  /* 卡片 */
+  .input-error:focus {
+    box-shadow: 0 0 0 3px rgba(255, 71, 87, 0.15), 0 0 20px rgba(255, 71, 87, 0.1);
+  }
+  
+  /* 卡片 - 科幻风格 */
   .card {
-    @apply bg-surface rounded-xl border border-border;
-    @apply shadow-theme-md;
-    @apply transition-all duration-normal;
+    @apply rounded-xl;
+    @apply transition-all duration-normal ease-out;
+    background: rgba(17, 24, 39, 0.8);
+    border: 1px solid var(--color-border);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
   }
   
-  .card-hover {
-    @apply hover:shadow-theme-lg hover:border-border-hover;
-    @apply hover:-translate-y-0.5;
+  .light .card {
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  }
+  
+  .card-hover:hover {
+    border-color: rgba(0, 212, 255, 0.3);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4), 0 0 30px rgba(0, 212, 255, 0.1);
+    transform: translateY(-4px);
   }
   
   .card-interactive {
     @apply cursor-pointer;
-    @apply hover:shadow-glow;
-    @apply active:scale-[0.99];
   }
   
   .card-interactive:hover {
-    border-color: rgb(59 130 246 / 0.5);
+    border-color: var(--color-primary);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4), 0 0 40px rgba(0, 212, 255, 0.15);
   }
   
-  /* 徽章 */
+  .card-interactive:active {
+    transform: scale(0.99);
+  }
+  
+  /* 徽章 - 发光效果 */
   .badge {
-    @apply inline-flex items-center px-2 py-0.5;
+    @apply inline-flex items-center px-2.5 py-1;
     @apply text-xs font-medium rounded-full;
+    @apply transition-all duration-fast;
   }
   
   .badge-primary {
-    @apply text-primary;
-    background-color: rgb(59 130 246 / 0.2);
+    color: var(--color-primary);
+    background: rgba(0, 212, 255, 0.15);
+    border: 1px solid rgba(0, 212, 255, 0.3);
   }
   
   .badge-success {
-    @apply text-success;
-    background-color: rgb(34 197 94 / 0.2);
+    color: var(--color-success);
+    background: rgba(0, 255, 136, 0.15);
+    border: 1px solid rgba(0, 255, 136, 0.3);
   }
   
   .badge-warning {
-    @apply text-warning;
-    background-color: rgb(245 158 11 / 0.2);
+    color: var(--color-warning);
+    background: rgba(255, 190, 11, 0.15);
+    border: 1px solid rgba(255, 190, 11, 0.3);
   }
   
   .badge-error {
-    @apply text-error;
-    background-color: rgb(239 68 68 / 0.2);
+    color: var(--color-error);
+    background: rgba(255, 71, 87, 0.15);
+    border: 1px solid rgba(255, 71, 87, 0.3);
   }
   
   .badge-info {
-    @apply text-info;
-    background-color: rgb(6 182 212 / 0.2);
+    color: var(--color-info);
+    background: rgba(0, 212, 255, 0.15);
+    border: 1px solid rgba(0, 212, 255, 0.3);
   }
   
   /* 分割线 */
   .divider {
-    @apply h-px bg-border my-4;
+    @apply my-4;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--color-border), transparent);
   }
   
   .divider-vertical {
-    @apply w-px bg-border mx-4 self-stretch;
+    @apply mx-4 self-stretch;
+    width: 1px;
+    background: linear-gradient(180deg, transparent, var(--color-border), transparent);
   }
   
   /* 工具提示 */
@@ -381,19 +562,33 @@ body {
   
   .tooltip::after {
     @apply absolute bottom-full left-1/2 -translate-x-1/2 mb-2;
-    @apply px-2 py-1 text-xs text-white bg-gray-900 rounded;
+    @apply px-3 py-1.5 text-xs text-white rounded-lg;
     @apply opacity-0 invisible transition-all duration-fast;
     @apply whitespace-nowrap;
     content: attr(data-tooltip);
+    background: rgba(17, 24, 39, 0.95);
+    border: 1px solid var(--color-border);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
   }
   
   .tooltip:hover::after {
     @apply opacity-100 visible;
   }
   
-  /* 骨架屏加载 */
+  /* 骨架屏加载 - 科幻风格 */
   .skeleton {
-    @apply bg-surface animate-pulse rounded;
+    @apply rounded;
+    background: linear-gradient(90deg, 
+      rgba(30, 58, 95, 0.3) 0%, 
+      rgba(0, 212, 255, 0.1) 50%, 
+      rgba(30, 58, 95, 0.3) 100%);
+    background-size: 200% 100%;
+    animation: skeleton-pulse 1.5s ease-in-out infinite;
+  }
+  
+  @keyframes skeleton-pulse {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
   }
   
   .skeleton-text {
@@ -404,21 +599,26 @@ body {
     @apply rounded-full;
   }
   
-  /* 加载指示器 */
+  /* 加载指示器 - 发光效果 */
   .spinner {
-    @apply w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin;
+    @apply w-5 h-5 rounded-full animate-spin;
+    border: 2px solid rgba(0, 212, 255, 0.2);
+    border-top-color: var(--color-primary);
+    box-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
   }
   
-  /* 面板 */
+  /* 面板 - 科幻风格 */
   .panel {
-    @apply bg-surface border border-border rounded-lg;
-    @apply overflow-hidden;
+    @apply rounded-lg overflow-hidden;
+    background: rgba(17, 24, 39, 0.8);
+    border: 1px solid var(--color-border);
   }
   
   .panel-header {
-    @apply px-4 py-3 border-b border-border;
+    @apply px-4 py-3;
     @apply flex items-center justify-between;
-    @apply bg-surface/50;
+    background: rgba(0, 212, 255, 0.05);
+    border-bottom: 1px solid var(--color-border);
   }
   
   .panel-body {
@@ -426,9 +626,10 @@ body {
   }
   
   .panel-footer {
-    @apply px-4 py-3 border-t border-border;
+    @apply px-4 py-3;
     @apply flex items-center justify-end gap-2;
-    @apply bg-surface/50;
+    background: rgba(0, 212, 255, 0.05);
+    border-top: 1px solid var(--color-border);
   }
 }
 
@@ -438,41 +639,57 @@ body {
    ============================================ */
 
 @layer utilities {
-  /* 悬停效果 */
+  /* 悬停效果 - 增强 */
   .hover-lift {
-    @apply transition-transform duration-normal;
-    @apply hover:-translate-y-1;
+    @apply transition-all duration-normal ease-out;
+  }
+  .hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
   }
   
   .hover-scale {
-    @apply transition-transform duration-normal;
-    @apply hover:scale-105;
+    @apply transition-all duration-normal ease-out;
+  }
+  .hover-scale:hover {
+    transform: scale(1.05);
   }
   
   .hover-glow {
-    @apply transition-shadow duration-normal;
-    @apply hover:shadow-glow;
+    @apply transition-all duration-normal ease-out;
+  }
+  .hover-glow:hover {
+    box-shadow: 0 0 30px var(--glow-primary), 0 0 60px rgba(0, 212, 255, 0.15);
   }
   
   .hover-bright {
-    @apply transition-all duration-normal;
-    @apply hover:brightness-110;
+    @apply transition-all duration-normal ease-out;
+  }
+  .hover-bright:hover {
+    filter: brightness(1.15);
   }
   
-  /* 点击效果 */
+  /* 点击效果 - 更流畅 */
   .active-scale {
-    @apply transition-transform duration-fast;
-    @apply active:scale-95;
+    @apply transition-transform duration-fast ease-out;
+  }
+  .active-scale:active {
+    transform: scale(0.95);
   }
   
   .active-press {
-    @apply transition-transform duration-fast;
-    @apply active:translate-y-0.5;
+    @apply transition-transform duration-fast ease-out;
+  }
+  .active-press:active {
+    transform: translateY(2px);
   }
   
-  /* 焦点效果 */
+  /* 焦点效果 - 发光 */
   .focus-ring {
-    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2;
+    @apply focus:outline-none;
+  }
+  .focus-ring:focus-visible {
+    box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.3), 0 0 20px rgba(0, 212, 255, 0.15);
   }
   
   /* 禁用状态 */
@@ -480,13 +697,15 @@ body {
     @apply disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none;
   }
   
-  /* 过渡效果 */
+  /* 过渡效果 - 更流畅 */
   .transition-base {
-    @apply transition-all duration-normal ease-out;
+    @apply transition-all ease-out;
+    transition-duration: var(--transition-normal);
   }
   
   .transition-colors-fast {
-    @apply transition-colors duration-fast;
+    @apply transition-colors ease-out;
+    transition-duration: var(--transition-fast);
   }
   
   /* 文本截断 */
@@ -561,28 +780,41 @@ body {
 }
 
 /* ============================================
-   Terminal Specific Styles
+   Terminal Specific Styles - 科幻风格
    ============================================ */
 
 .terminal-container {
-  @apply bg-black rounded-lg overflow-hidden;
-  @apply border border-border;
+  @apply rounded-lg overflow-hidden;
+  background: linear-gradient(180deg, #0d1117 0%, #010409 100%);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(0, 212, 255, 0.1);
 }
 
 .terminal-header {
   @apply flex items-center gap-2 px-4 py-2;
-  @apply bg-surface border-b border-border;
+  background: linear-gradient(180deg, rgba(0, 212, 255, 0.08) 0%, transparent 100%);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .terminal-dot {
   @apply w-3 h-3 rounded-full;
+  box-shadow: 0 0 8px currentColor;
 }
 
-.terminal-dot-red { @apply bg-red-500; }
-.terminal-dot-yellow { @apply bg-yellow-500; }
-.terminal-dot-green { @apply bg-green-500; }
+.terminal-dot-red { 
+  @apply bg-red-500; 
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+}
+.terminal-dot-yellow { 
+  @apply bg-yellow-500; 
+  box-shadow: 0 0 8px rgba(234, 179, 8, 0.6);
+}
+.terminal-dot-green { 
+  @apply bg-green-500; 
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
+}
 
-/* xterm 光标闪烁 */
+/* xterm 光标闪烁 - 发光效果 */
 .xterm .xterm-cursor-layer .xterm-cursor {
   animation: xterm-cursor-blink 1s step-end infinite !important;
 }
@@ -593,10 +825,12 @@ body {
 
 .xterm .xterm-cursor-layer .xterm-cursor-bar {
   animation: xterm-cursor-blink 1s step-end infinite !important;
+  box-shadow: 0 0 8px var(--color-primary);
 }
 
 .xterm .xterm-cursor-layer .xterm-cursor-block {
   animation: xterm-cursor-blink 1s step-end infinite !important;
+  box-shadow: 0 0 8px var(--color-primary);
 }
 
 @keyframes xterm-cursor-blink {
@@ -605,23 +839,51 @@ body {
 }
 
 /* ============================================
-   File Explorer Styles
+   File Explorer Styles - 科幻风格
    ============================================ */
 
 .file-item {
   @apply flex items-center gap-2 px-3 py-2;
   @apply rounded-lg cursor-pointer;
-  @apply transition-all duration-fast;
-  @apply hover:bg-surface-hover;
+  @apply transition-all ease-out;
+  transition-duration: var(--transition-fast);
+  position: relative;
+}
+
+.file-item:hover {
+  background: rgba(0, 212, 255, 0.08);
+}
+
+.file-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2px;
+  height: 0;
+  background: var(--color-primary);
+  border-radius: 1px;
+  transition: height var(--transition-fast) ease-out;
+  box-shadow: 0 0 8px var(--glow-primary);
+}
+
+.file-item:hover::before {
+  height: 60%;
 }
 
 .file-item-selected {
-  @apply text-primary;
-  background-color: rgb(59 130 246 / 0.2);
+  color: var(--color-primary);
+  background: rgba(0, 212, 255, 0.12);
+}
+
+.file-item-selected::before {
+  height: 80%;
 }
 
 .file-icon {
   @apply w-5 h-5 flex-shrink-0;
+  filter: drop-shadow(0 0 2px currentColor);
 }
 
 /* ============================================
@@ -810,9 +1072,9 @@ body {
   @apply translate-x-5;
 }
 
-/* 下拉菜单动画 */
+/* 下拉菜单动画 - 科幻风格 */
 .dropdown-enter {
-  animation: dropdownEnter var(--transition-normal) ease-out;
+  animation: dropdownEnter var(--transition-normal) cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .dropdown-exit {
@@ -822,11 +1084,13 @@ body {
 @keyframes dropdownEnter {
   0% {
     opacity: 0;
-    transform: translateY(-8px) scale(0.95);
+    transform: translateY(-12px) scale(0.9);
+    filter: blur(4px);
   }
   100% {
     opacity: 1;
     transform: translateY(0) scale(1);
+    filter: blur(0);
   }
 }
 
@@ -834,20 +1098,44 @@ body {
   0% {
     opacity: 1;
     transform: translateY(0) scale(1);
+    filter: blur(0);
   }
   100% {
     opacity: 0;
     transform: translateY(-8px) scale(0.95);
+    filter: blur(2px);
   }
 }
 
-/* 模态框动画 */
+/* 模态框动画 - 科幻风格 */
 .modal-backdrop-enter {
-  animation: fadeIn var(--transition-normal) ease-out;
+  animation: backdropEnter var(--transition-normal) ease-out;
 }
 
 .modal-backdrop-exit {
-  animation: fadeOut var(--transition-fast) ease-in;
+  animation: backdropExit var(--transition-fast) ease-in;
+}
+
+@keyframes backdropEnter {
+  0% {
+    opacity: 0;
+    backdrop-filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    backdrop-filter: blur(8px);
+  }
+}
+
+@keyframes backdropExit {
+  0% {
+    opacity: 1;
+    backdrop-filter: blur(8px);
+  }
+  100% {
+    opacity: 0;
+    backdrop-filter: blur(0);
+  }
 }
 
 .modal-content-enter {
@@ -861,11 +1149,13 @@ body {
 @keyframes modalEnter {
   0% {
     opacity: 0;
-    transform: scale(0.9) translateY(20px);
+    transform: scale(0.85) translateY(30px);
+    filter: blur(8px);
   }
   100% {
     opacity: 1;
     transform: scale(1) translateY(0);
+    filter: blur(0);
   }
 }
 
@@ -873,16 +1163,18 @@ body {
   0% {
     opacity: 1;
     transform: scale(1) translateY(0);
+    filter: blur(0);
   }
   100% {
     opacity: 0;
     transform: scale(0.9) translateY(20px);
+    filter: blur(4px);
   }
 }
 
-/* Toast 通知动画 */
+/* Toast 通知动画 - 科幻风格 */
 .toast-enter {
-  animation: toastEnter var(--transition-normal) ease-out;
+  animation: toastEnter var(--transition-normal) cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .toast-exit {
@@ -892,33 +1184,39 @@ body {
 @keyframes toastEnter {
   0% {
     opacity: 0;
-    transform: translateX(100%);
+    transform: translateX(100%) scale(0.9);
+    filter: blur(4px);
   }
   100% {
     opacity: 1;
-    transform: translateX(0);
+    transform: translateX(0) scale(1);
+    filter: blur(0);
   }
 }
 
 @keyframes toastExit {
   0% {
     opacity: 1;
-    transform: translateX(0);
+    transform: translateX(0) scale(1);
   }
   100% {
     opacity: 0;
-    transform: translateX(100%);
+    transform: translateX(100%) scale(0.9);
   }
 }
 
-/* 进度条动画 */
+/* 进度条动画 - 发光效果 */
 .progress-bar {
-  @apply h-2 bg-border rounded-full overflow-hidden;
+  @apply h-2 rounded-full overflow-hidden;
+  background: rgba(30, 58, 95, 0.5);
 }
 
 .progress-bar-fill {
-  @apply h-full bg-primary rounded-full;
-  @apply transition-all duration-slow ease-out;
+  @apply h-full rounded-full;
+  @apply transition-all ease-out;
+  transition-duration: var(--transition-slow);
+  background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-accent) 100%);
+  box-shadow: 0 0 10px var(--glow-primary);
 }
 
 .progress-bar-indeterminate .progress-bar-fill {
@@ -935,13 +1233,15 @@ body {
   }
 }
 
-/* 加载点动画 */
+/* 加载点动画 - 发光效果 */
 .loading-dots {
-  @apply flex gap-1;
+  @apply flex gap-1.5;
 }
 
 .loading-dots span {
-  @apply w-2 h-2 bg-current rounded-full;
+  @apply w-2 h-2 rounded-full;
+  background: var(--color-primary);
+  box-shadow: 0 0 8px var(--glow-primary);
   animation: loadingDot 1.4s ease-in-out infinite both;
 }
 
@@ -952,15 +1252,17 @@ body {
 @keyframes loadingDot {
   0%, 80%, 100% {
     transform: scale(0.6);
-    opacity: 0.5;
+    opacity: 0.4;
+    box-shadow: 0 0 4px var(--glow-primary);
   }
   40% {
     transform: scale(1);
     opacity: 1;
+    box-shadow: 0 0 12px var(--glow-primary);
   }
 }
 
-/* 心跳动画 (用于状态指示) */
+/* 心跳动画 (用于状态指示) - 发光 */
 .heartbeat {
   animation: heartbeat 2s ease-in-out infinite;
 }
@@ -968,22 +1270,27 @@ body {
 @keyframes heartbeat {
   0%, 100% {
     transform: scale(1);
+    box-shadow: 0 0 8px currentColor;
   }
   14% {
-    transform: scale(1.1);
+    transform: scale(1.15);
+    box-shadow: 0 0 16px currentColor;
   }
   28% {
     transform: scale(1);
+    box-shadow: 0 0 8px currentColor;
   }
   42% {
-    transform: scale(1.1);
+    transform: scale(1.15);
+    box-shadow: 0 0 16px currentColor;
   }
   70% {
     transform: scale(1);
+    box-shadow: 0 0 8px currentColor;
   }
 }
 
-/* 呼吸灯效果 */
+/* 呼吸灯效果 - 增强 */
 .breathing {
   animation: breathing 3s ease-in-out infinite;
 }
@@ -991,9 +1298,11 @@ body {
 @keyframes breathing {
   0%, 100% {
     opacity: 0.4;
+    box-shadow: 0 0 5px currentColor;
   }
   50% {
     opacity: 1;
+    box-shadow: 0 0 15px currentColor;
   }
 }
 
@@ -1009,6 +1318,42 @@ body {
   50% {
     opacity: 0;
   }
+}
+
+/* 脉冲发光效果 */
+.pulse-glow {
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 5px var(--glow-primary), 0 0 10px rgba(0, 212, 255, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 20px var(--glow-primary), 0 0 40px rgba(0, 212, 255, 0.2);
+  }
+}
+
+/* 扫描效果 */
+.scan-line {
+  position: relative;
+  overflow: hidden;
+}
+
+.scan-line::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--color-primary), transparent);
+  animation: scanLine 3s linear infinite;
+}
+
+@keyframes scanLine {
+  0% { top: 0; opacity: 1; }
+  100% { top: 100%; opacity: 0; }
 }
 
 
@@ -1312,4 +1657,283 @@ body {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+
+/* ============================================
+   Sci-Fi Additional Effects
+   ============================================ */
+
+/* 数据流动效果 */
+.data-flow {
+  position: relative;
+  overflow: hidden;
+}
+
+.data-flow::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(0, 212, 255, 0.1),
+    transparent
+  );
+  animation: dataFlow 3s linear infinite;
+}
+
+@keyframes dataFlow {
+  0% { left: -100%; }
+  100% { left: 200%; }
+}
+
+/* 边框发光动画 */
+.border-glow {
+  position: relative;
+}
+
+.border-glow::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(
+    45deg,
+    transparent 30%,
+    rgba(0, 212, 255, 0.5) 50%,
+    transparent 70%
+  );
+  background-size: 200% 200%;
+  animation: borderGlow 3s linear infinite;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.border-glow:hover::after {
+  opacity: 1;
+}
+
+@keyframes borderGlow {
+  0% { background-position: 200% 200%; }
+  100% { background-position: -200% -200%; }
+}
+
+/* 霓虹文字效果 */
+.neon-text {
+  text-shadow: 
+    0 0 5px var(--color-primary),
+    0 0 10px var(--color-primary),
+    0 0 20px rgba(0, 212, 255, 0.5);
+}
+
+/* 科幻按钮悬停效果 */
+.cyber-btn {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.cyber-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    120deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: left 0.5s ease;
+}
+
+.cyber-btn:hover::before {
+  left: 100%;
+}
+
+/* 状态指示器脉冲 */
+.status-pulse {
+  position: relative;
+}
+
+.status-pulse::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0;
+  animation: statusPulse 2s ease-out infinite;
+}
+
+@keyframes statusPulse {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+/* 网格背景 */
+.grid-bg {
+  background-image: 
+    linear-gradient(rgba(0, 212, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 212, 255, 0.03) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* 渐变边框 */
+.gradient-border {
+  position: relative;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+}
+
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+  -webkit-mask: 
+    linear-gradient(#fff 0 0) content-box, 
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+/* 悬浮卡片效果 */
+.float-card {
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.float-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.4),
+    0 0 40px rgba(0, 212, 255, 0.15);
+}
+
+/* 输入框聚焦发光 */
+.input-glow:focus {
+  border-color: var(--color-primary);
+  box-shadow: 
+    0 0 0 3px rgba(0, 212, 255, 0.15),
+    0 0 20px rgba(0, 212, 255, 0.2),
+    inset 0 0 10px rgba(0, 212, 255, 0.05);
+}
+
+/* 列表项悬停效果 */
+.list-item-hover {
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.list-item-hover::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 0;
+  background: linear-gradient(180deg, var(--color-primary), var(--color-accent));
+  border-radius: 2px;
+  transition: height 0.2s ease;
+  box-shadow: 0 0 10px var(--glow-primary);
+}
+
+.list-item-hover:hover::before {
+  height: 70%;
+}
+
+.list-item-hover:hover {
+  background: rgba(0, 212, 255, 0.08);
+  padding-left: 12px;
+}
+
+/* 标签页激活指示器 */
+.tab-active-indicator {
+  position: relative;
+}
+
+.tab-active-indicator::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--color-primary), transparent);
+  transition: width 0.3s ease;
+  box-shadow: 0 0 10px var(--glow-primary);
+}
+
+.tab-active-indicator.active::after,
+.tab-active-indicator:hover::after {
+  width: 100%;
+}
+
+/* 图标旋转动画 */
+.icon-spin {
+  animation: iconSpin 1s linear infinite;
+}
+
+@keyframes iconSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* 淡入上滑动画 */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-up {
+  animation: fadeInUp 0.4s ease-out;
+}
+
+/* 淡入缩放动画 */
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.fade-in-scale {
+  animation: fadeInScale 0.3s ease-out;
+}
+
+/* 基础淡入动画 */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
 }

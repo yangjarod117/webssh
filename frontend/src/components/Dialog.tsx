@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 
 /**
  * 对话框基础组件属性
@@ -37,34 +38,45 @@ export function Dialog({ isOpen, onClose, title, children }: DialogProps) {
 
   if (!isOpen) return null
 
-  return (
-    <div className="fixed inset-0 z-modal flex items-center justify-center">
+  const dialogContent = (
+    <div className="fixed inset-0 flex items-center justify-center" style={{ zIndex: 9999 }}>
       {/* 背景遮罩 */}
       <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm modal-backdrop-enter"
+        className="absolute inset-0 bg-black/70 backdrop-blur-md"
+        style={{ animation: 'backdropEnter 250ms ease-out' }}
         onClick={onClose}
       />
 
       {/* 对话框内容 */}
       <div
         ref={dialogRef}
-        className="
-          relative z-10 w-full max-w-md mx-4
-          bg-surface border border-border rounded-theme-xl shadow-theme-xl
-          modal-content-enter
-        "
+        className="relative w-full max-w-md mx-4 rounded-xl overflow-hidden"
+        style={{ 
+          zIndex: 10000,
+          background: 'linear-gradient(180deg, rgba(17, 24, 39, 0.98) 0%, rgba(10, 14, 23, 0.99) 100%)',
+          border: '1px solid rgba(0, 212, 255, 0.2)',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.6), 0 0 40px rgba(0, 212, 255, 0.1)',
+          animation: 'modalEnter 300ms cubic-bezier(0.34, 1.56, 0.64, 1)'
+        }}
       >
         {/* 标题栏 */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+        <div 
+          className="flex items-center justify-between px-4 py-3 border-b"
+          style={{ 
+            borderColor: 'rgba(0, 212, 255, 0.15)',
+            background: 'rgba(0, 212, 255, 0.05)'
+          }}
+        >
           <h3 className="text-lg font-medium text-text">{title}</h3>
           <button
             onClick={onClose}
             className="
-              p-1.5 rounded-theme-md text-text-secondary 
-              hover:text-text hover:bg-surface-hover
-              transition-all duration-fast
+              p-1.5 rounded-lg text-text-secondary 
+              hover:text-error hover:bg-error/10
+              transition-all duration-200
               active:scale-95
             "
+            style={{ transition: 'all 200ms ease-out' }}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -79,6 +91,9 @@ export function Dialog({ isOpen, onClose, title, children }: DialogProps) {
       </div>
     </div>
   )
+
+  // 使用 Portal 将对话框渲染到 body 下，避免被父元素遮挡
+  return createPortal(dialogContent, document.body)
 }
 
 /**

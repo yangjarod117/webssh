@@ -1,11 +1,18 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 
 interface MonitorData {
-  cpu: { usage: number }
+  cpu: { usage: number; model?: string }
   memory: { total: number; used: number; free: number; available: number; usagePercent: number }
   disk: { total: number; used: number; free: number; usagePercent: number }
   network: { rxBytes: number; txBytes: number }
-  system: { uptime: string; load: { load1: number; load5: number; load15: number } }
+  system: { 
+    uptime: string
+    load: { load1: number; load5: number; load15: number }
+    hostname?: string
+    os?: string
+    osVersion?: string
+    kernel?: string
+  }
   timestamp: number
 }
 
@@ -207,12 +214,41 @@ export function SystemMonitor({ sessionId }: SystemMonitorProps) {
             </div>
 
             {/* 系统信息 */}
-            <div className="pt-1 border-t border-border text-xs">
+            <div className="pt-1 border-t border-border text-xs space-y-1">
+              {/* 主机名和操作系统 */}
+              {data.system.hostname && (
+                <div className="flex justify-between text-text-secondary">
+                  <span>主机名</span>
+                  <span className="text-text truncate ml-2 max-w-[140px]" title={data.system.hostname}>{data.system.hostname}</span>
+                </div>
+              )}
+              {data.system.os && (
+                <div className="flex justify-between text-text-secondary">
+                  <span>系统</span>
+                  <span className="text-text truncate ml-2 max-w-[140px]" title={`${data.system.os} ${data.system.osVersion || ''}`}>
+                    {data.system.os} {data.system.osVersion?.split(' ')[0] || ''}
+                  </span>
+                </div>
+              )}
+              {data.system.kernel && (
+                <div className="flex justify-between text-text-secondary">
+                  <span>内核</span>
+                  <span className="text-text truncate ml-2 max-w-[140px]" title={data.system.kernel}>{data.system.kernel}</span>
+                </div>
+              )}
+              {data.cpu.model && (
+                <div className="flex justify-between text-text-secondary">
+                  <span>CPU</span>
+                  <span className="text-text truncate ml-2 max-w-[140px]" title={data.cpu.model}>
+                    {data.cpu.model.replace(/\(R\)|\(TM\)|CPU|@.*$/gi, '').trim().substring(0, 20)}
+                  </span>
+                </div>
+              )}
               <div className="flex justify-between text-text-secondary">
                 <span>运行时间</span>
                 <span className="text-text">{data.system.uptime}</span>
               </div>
-              <div className="flex justify-between text-text-secondary mt-1">
+              <div className="flex justify-between text-text-secondary">
                 <span>负载</span>
                 <span className="text-text">
                   {data.system.load.load1.toFixed(2)} / {data.system.load.load5.toFixed(2)} / {data.system.load.load15.toFixed(2)}

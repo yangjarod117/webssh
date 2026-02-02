@@ -297,7 +297,7 @@ export function TerminalPanel({ sessionId, isActive = true, onResize, onData, on
       ws = new WebSocket(wsUrl)
 
       ws.onopen = () => {
-        console.log('WebSocket connected')
+        console.log('WebSocket connected for session:', sessionId)
         reconnectAttempts = 0
         
         // 更新全局存储中的 ws
@@ -306,9 +306,10 @@ export function TerminalPanel({ sessionId, isActive = true, onResize, onData, on
           termData.ws = ws
         }
         
-        // 发送初始大小
+        // 发送初始大小（这会触发后端创建 shell）
         if (fitAddonRef.current && xtermRef.current) {
           const { cols, rows } = xtermRef.current
+          console.log(`Sending initial resize: cols=${cols}, rows=${rows}`)
           ws?.send(JSON.stringify({
             type: 'resize',
             sessionId,

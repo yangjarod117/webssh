@@ -193,17 +193,21 @@ export function SplitLayout({
           minWidth: isCollapsed ? 0 : undefined,
         }}
       >
-        {!isCollapsed && left}
+        {!isCollapsed && (
+          <div className="h-full m-2 mr-0 rounded-2xl overflow-hidden bg-surface border border-border">
+            {left}
+          </div>
+        )}
       </div>
 
       {/* 分隔条 */}
       <div
         className={`
-          relative flex-shrink-0 w-1 bg-border
+          relative flex-shrink-0 w-1 mx-1
           cursor-col-resize
           transition-colors duration-fast
-          hover:bg-primary
-          ${isDragging ? 'bg-primary' : ''}
+          hover:bg-primary/50
+          ${isDragging ? 'bg-primary' : 'bg-transparent'}
         `}
         onMouseDown={handleMouseDown}
         onTouchStart={handleTouchStart}
@@ -228,12 +232,12 @@ export function SplitLayout({
           }}
           className="
             absolute top-1/2 -translate-y-1/2 -left-3
-            w-6 h-12 bg-surface border border-border rounded-theme-md
+            w-6 h-12 backdrop-blur-sm bg-surface border border-border rounded-xl
             flex items-center justify-center
             hover:bg-primary hover:text-white hover:border-primary
             transition-all duration-fast
             active:scale-95
-            z-10 shadow-theme-sm
+            z-10 shadow-lg
           "
           title={isCollapsed ? '展开' : '折叠'}
         >
@@ -258,7 +262,9 @@ export function SplitLayout({
         className="h-full overflow-hidden flex-1 transition-all duration-normal ease-out"
         style={{ width: rightWidth }}
       >
-        {right}
+        <div className="h-full m-2 ml-0 rounded-2xl overflow-hidden bg-surface border border-border">
+          {right}
+        </div>
       </div>
     </div>
   )

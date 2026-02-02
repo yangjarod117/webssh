@@ -4,11 +4,11 @@ import type { ThemeConfig, TerminalTheme } from '../types'
 
 // 深色主题终端配置
 const darkTerminalTheme: TerminalTheme = {
-  background: '#1a1a2e',
+  background: '#0d1321',
   foreground: '#e4e4e7',
-  cursor: '#ffffff',
-  selection: 'rgba(59, 130, 246, 0.3)',
-  black: '#27272a',
+  cursor: '#00d4ff',
+  selection: 'rgba(0, 212, 255, 0.3)',
+  black: '#1e3a5f',
   red: '#ef4444',
   green: '#22c55e',
   yellow: '#eab308',
@@ -41,13 +41,13 @@ export const themes: ThemeConfig[] = [
     name: '深色主题',
     type: 'dark',
     colors: {
-      primary: '#3b82f6',
+      primary: '#00d4ff',
       secondary: '#6b7280',
-      background: '#1a1a2e',
-      surface: '#16213e',
+      background: '#0a0e17',
+      surface: '#0d1321',
       text: '#e4e4e7',
       textSecondary: '#a1a1aa',
-      border: '#374151',
+      border: '#1e3a5f',
       accent: '#8b5cf6',
       error: '#ef4444',
       success: '#22c55e',

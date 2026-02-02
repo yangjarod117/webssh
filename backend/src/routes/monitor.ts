@@ -75,22 +75,60 @@ async function executeMonitorCommands(client: any) {
   const exec = (cmd: string) => execCommand(client, cmd).catch(() => '')
   
   try {
-    const [cpuInfo, memInfo, diskInfo, netInfo, uptimeInfo, loadInfo] = await Promise.all([
-      exec("top -bn1 | grep 'Cpu(s)' | awk '{print $2}' | cut -d'%' -f1"),
-      exec("free -b | grep Mem | awk '{print $2,$3,$4,$7}'"),
-      exec("df -B1 / | tail -1 | awk '{print $2,$3,$4,$5}'"),
-      exec("cat /proc/net/dev | grep -E 'eth0|ens|enp' | head -1 | awk '{print $2,$10}'"),
-      exec("uptime -p 2>/dev/null || uptime | sed 's/.*up //' | cut -d',' -f1-2"),
-      exec("cat /proc/loadavg | awk '{print $1,$2,$3}'"),
+    // 合并多个命令减少 channel 使用
+    // 第一批：基础系统信息（合并为一个命令）
+    const sysInfoCmd = `echo "HOSTNAME:$(hostname 2>/dev/null || cat /etc/hostname 2>/dev/null)"; echo "KERNEL:$(uname -r 2>/dev/null)"; echo "UPTIME:$(uptime -p 2>/dev/null || uptime | sed 's/.*up //' | cut -d',' -f1-2)"; echo "LOAD:$(cat /proc/loadavg | awk '{print $1,$2,$3}')"`
+    
+    // 第二批：资源使用信息
+    const resourceCmd = `echo "CPU:$(top -bn1 | grep 'Cpu(s)' | awk '{print $2}' | cut -d'%' -f1)"; echo "MEM:$(free -b | grep Mem | awk '{print $2,$3,$4,$7}')"; echo "DISK:$(df -B1 / | tail -1 | awk '{print $2,$3,$4,$5}')"; echo "NET:$(cat /proc/net/dev | grep -E 'eth0|ens|enp|wlan|wlp' | head -1 | awk '{print $2,$10}')"`
+    
+    // 第三批：OS 和 CPU 型号
+    const osCmd = `cat /etc/os-release 2>/dev/null | grep -E '^(NAME|VERSION)=' | head -2`
+    const cpuModelCmd = `cat /proc/cpuinfo 2>/dev/null | grep -E 'model name|Hardware|Processor' | head -1 | cut -d':' -f2`
+
+    const [sysInfo, resourceInfo, osInfo, cpuModelInfo] = await Promise.all([
+      exec(sysInfoCmd),
+      exec(resourceCmd),
+      exec(osCmd),
+      exec(cpuModelCmd),
     ])
+
+    // 解析系统信息
+    const parseValue = (output: string, key: string) => {
+      const match = output.match(new RegExp(`${key}:(.*)`, 'm'))
+      return match ? match[1].trim() : ''
+    }
+
+    const hostname = parseValue(sysInfo, 'HOSTNAME')
+    const kernel = parseValue(sysInfo, 'KERNEL')
+    const uptimeInfo = parseValue(sysInfo, 'UPTIME')
+    const loadInfo = parseValue(sysInfo, 'LOAD')
+
+    const cpuInfo = parseValue(resourceInfo, 'CPU')
+    const memInfo = parseValue(resourceInfo, 'MEM')
+    const diskInfo = parseValue(resourceInfo, 'DISK')
+    const netInfo = parseValue(resourceInfo, 'NET')
 
     const mem = memInfo.split(' ').map(n => parseInt(n) || 0)
     const disk = diskInfo.split(' ')
     const net = netInfo.split(' ').map(n => parseInt(n) || 0)
     const load = loadInfo.split(' ').map(n => parseFloat(n) || 0)
+    
+    // 解析操作系统信息
+    let osName = 'Linux'
+    let osVersion = ''
+    if (osInfo) {
+      const nameMatch = osInfo.match(/NAME="?([^"\n]+)"?/)
+      const versionMatch = osInfo.match(/VERSION="?([^"\n]+)"?/)
+      if (nameMatch) osName = nameMatch[1].trim()
+      if (versionMatch) osVersion = versionMatch[1].trim()
+    }
+
+    // 处理 CPU 型号
+    const cpuModel = cpuModelInfo?.trim() || ''
 
     return {
-      cpu: { usage: parseFloat(cpuInfo) || 0 },
+      cpu: { usage: parseFloat(cpuInfo) || 0, model: cpuModel },
       memory: {
         total: mem[0], used: mem[1], free: mem[2], available: mem[3] || mem[2],
         usagePercent: mem[0] > 0 ? Math.round((mem[1] / mem[0]) * 100) : 0,
@@ -100,14 +138,25 @@ async function executeMonitorCommands(client: any) {
         usagePercent: parseInt(disk[3]) || 0,
       },
       network: { rxBytes: net[0], txBytes: net[1] },
-      system: { uptime: uptimeInfo || 'unknown', load: { load1: load[0], load5: load[1], load15: load[2] } },
+      system: { 
+        uptime: uptimeInfo || '', 
+        load: { load1: load[0], load5: load[1], load15: load[2] },
+        hostname,
+        os: osName,
+        osVersion,
+        kernel,
+      },
       timestamp: Date.now(),
     }
-  } catch {
+  } catch (err) {
+    console.error('[Monitor] Error:', err)
     return {
-      cpu: { usage: 0 }, memory: { total: 0, used: 0, free: 0, available: 0, usagePercent: 0 },
-      disk: { total: 0, used: 0, free: 0, usagePercent: 0 }, network: { rxBytes: 0, txBytes: 0 },
-      system: { uptime: 'unknown', load: { load1: 0, load5: 0, load15: 0 } }, timestamp: Date.now(),
+      cpu: { usage: 0, model: '' }, 
+      memory: { total: 0, used: 0, free: 0, available: 0, usagePercent: 0 },
+      disk: { total: 0, used: 0, free: 0, usagePercent: 0 }, 
+      network: { rxBytes: 0, txBytes: 0 },
+      system: { uptime: '', load: { load1: 0, load5: 0, load15: 0 }, hostname: '', os: 'Linux', osVersion: '', kernel: '' }, 
+      timestamp: Date.now(),
     }
   }
 }
@@ -135,18 +184,18 @@ async function getLoginHistory(client: any) {
   }
 
   try {
-    // 方案1: last 命令
-    const lastOutput = await exec('last -20 -i 2>/dev/null || last -20 2>/dev/null || last -n 20 2>/dev/null')
-    if (lastOutput && !lastOutput.includes('command not found') && lastOutput.length > 10) {
-      for (const line of lastOutput.split('\n').slice(0, 15)) {
-        if (!line.trim() || line.includes('wtmp') || line.includes('reboot')) continue
+    // 方案0: wtmpdb (Debian 13+ 新方式)
+    const wtmpdbOutput = await exec('wtmpdb last 2>/dev/null | head -20')
+    if (wtmpdbOutput && !wtmpdbOutput.includes('command not found') && wtmpdbOutput.length > 10) {
+      for (const line of wtmpdbOutput.split('\n').slice(0, 15)) {
+        if (!line.trim() || line.includes('wtmp') || line.includes('reboot') || line.includes('begins')) continue
         const parts = line.split(/\s+/).filter(p => p)
         if (parts.length < 4) continue
         const user = parts[0]
         if (['reboot', 'shutdown', 'runlevel'].includes(user)) continue
         
         const lineL = line.toLowerCase()
-        const isCurrent = lineL.includes('still logged in') || lineL.includes('still running')
+        const isCurrent = lineL.includes('still logged in') || lineL.includes('still running') || lineL.includes('logged in')
         const durationMatch = line.match(/\(([^)]+)\)\s*$/)
         
         history.push({
@@ -157,7 +206,60 @@ async function getLoginHistory(client: any) {
       }
     }
 
-    // 方案2: auth.log / secure
+    // 方案1: last 命令 - 尝试多种参数组合
+    if (history.length === 0) {
+      let lastOutput = await exec('last -20 2>/dev/null')
+      if (!lastOutput || lastOutput.includes('command not found')) {
+        lastOutput = await exec('last -n 20 2>/dev/null')
+      }
+      if (!lastOutput || lastOutput.includes('command not found')) {
+        lastOutput = await exec('last 2>/dev/null | head -20')
+      }
+      
+      if (lastOutput && !lastOutput.includes('command not found') && lastOutput.length > 10) {
+        for (const line of lastOutput.split('\n').slice(0, 15)) {
+          if (!line.trim() || line.includes('wtmp') || line.includes('reboot') || line.includes('begins')) continue
+          const parts = line.split(/\s+/).filter(p => p)
+          if (parts.length < 4) continue
+          const user = parts[0]
+          if (['reboot', 'shutdown', 'runlevel'].includes(user)) continue
+          
+          const lineL = line.toLowerCase()
+          const isCurrent = lineL.includes('still logged in') || lineL.includes('still running')
+          const durationMatch = line.match(/\(([^)]+)\)\s*$/)
+          
+          history.push({
+            user, ip: parseIp(parts), time: parseTime(parts),
+            duration: isCurrent ? '在线中' : (durationMatch?.[1] || '-'),
+            status: isCurrent ? 'current' : 'success'
+          })
+        }
+      }
+    }
+
+    // 方案2: lastlog 命令 - 显示每个用户最后一次登录
+    if (history.length === 0) {
+      const lastlogOutput = await exec('lastlog 2>/dev/null | grep -v "Never logged in" | tail -20')
+      if (lastlogOutput && !lastlogOutput.includes('command not found')) {
+        for (const line of lastlogOutput.split('\n').slice(1)) { // 跳过标题行
+          if (!line.trim()) continue
+          const parts = line.split(/\s+/).filter(p => p)
+          if (parts.length < 4) continue
+          const user = parts[0]
+          if (['Username', 'root'].includes(user) && parts[1] === 'Port') continue // 跳过标题
+          
+          // lastlog 格式: Username Port From Latest
+          const ip = parts.length > 2 ? parts[2] : '-'
+          const time = parts.slice(3).join(' ')
+          
+          if (time && !time.includes('Never')) {
+            history.push({ user, ip, time, duration: '-', status: 'success' })
+          }
+        }
+      }
+    }
+
+    // 方案3: auth.log / secure
     if (history.length === 0) {
       const authLog = await exec('tail -100 /var/log/auth.log 2>/dev/null || tail -100 /var/log/secure 2>/dev/null')
       if (authLog) {
@@ -166,7 +268,7 @@ async function getLoginHistory(client: any) {
           if (history.length >= 15) break
           const accepted = line.match(/(\w+\s+\d+\s+[\d:]+).*Accepted\s+\w+\s+for\s+(\w+)\s+from\s+([\d.]+)/)
           if (accepted) {
-            const key = `${accepted[2]}@${accepted[3]}`
+            const key = `${accepted[2]}@${accepted[3]}@${accepted[1]}`
             if (!seen.has(key)) { seen.add(key); history.push({ user: accepted[2], ip: accepted[3], time: accepted[1], duration: '-', status: 'success' }) }
             continue
           }
@@ -176,7 +278,7 @@ async function getLoginHistory(client: any) {
       }
     }
 
-    // 方案3: journalctl
+    // 方案4: journalctl
     if (history.length === 0) {
       const journal = await exec('journalctl -u sshd -n 50 --no-pager 2>/dev/null || journalctl -u ssh -n 50 --no-pager 2>/dev/null')
       if (journal && !journal.includes('No journal files')) {
@@ -185,7 +287,7 @@ async function getLoginHistory(client: any) {
           if (history.length >= 15) break
           const accepted = line.match(/(\w+\s+\d+\s+[\d:]+).*Accepted\s+\w+\s+for\s+(\w+)\s+from\s+([\d.]+)/)
           if (accepted) {
-            const key = `${accepted[2]}@${accepted[3]}`
+            const key = `${accepted[2]}@${accepted[3]}@${accepted[1]}`
             if (!seen.has(key)) { seen.add(key); history.push({ user: accepted[2], ip: accepted[3], time: accepted[1], duration: '-', status: 'success' }) }
             continue
           }
@@ -195,7 +297,7 @@ async function getLoginHistory(client: any) {
       }
     }
 
-    // 方案4: who 命令获取当前在线用户
+    // 方案5: who 命令获取当前在线用户 (始终执行，确保显示当前用户)
     const whoOutput = await exec('who 2>/dev/null')
     if (whoOutput) {
       for (const line of whoOutput.split('\n').filter(l => l.trim())) {

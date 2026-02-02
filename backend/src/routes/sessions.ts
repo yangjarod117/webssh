@@ -89,4 +89,24 @@ router.delete('/:id', (req: Request, res: Response) => {
   res.status(204).send()
 })
 
+/**
+ * 断开 SSH 会话（用于 sendBeacon，支持 POST）
+ * POST /api/sessions/:id/disconnect
+ */
+router.post('/:id/disconnect', (req: Request, res: Response) => {
+  const { id } = req.params
+  console.log(`[Sessions] Disconnect request for session ${id}`)
+  
+  const success = sshManager.disconnect(id)
+  
+  if (success) {
+    console.log(`[Sessions] Session ${id} disconnected successfully`)
+  } else {
+    console.log(`[Sessions] Session ${id} not found or already disconnected`)
+  }
+
+  // 始终返回成功，因为 sendBeacon 不关心响应
+  res.status(200).json({ success })
+})
+
 export default router

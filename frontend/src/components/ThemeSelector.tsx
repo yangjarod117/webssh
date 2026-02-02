@@ -30,7 +30,7 @@ export function ThemeSelector() {
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-surface hover:bg-opacity-80 transition-colors border border-border"
+        className="flex items-center gap-2 px-3 py-2 rounded-xl backdrop-blur-sm bg-surface hover:bg-primary/20 transition-all border border-border"
       >
         <span className="text-sm">{currentTheme.name}</span>
         <svg
@@ -47,7 +47,7 @@ export function ThemeSelector() {
         {isOpen && (
           <>
             {/* 背景遮罩 */}
-            <div className="fixed inset-0 z-10" onClick={() => setIsOpen(false)} />
+            <div className="fixed inset-0 z-[100]" onClick={() => setIsOpen(false)} />
 
             {/* 下拉菜单 */}
             <motion.div
@@ -55,7 +55,7 @@ export function ThemeSelector() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.15 }}
-              className="absolute right-0 mt-2 w-56 rounded-lg bg-surface border border-border shadow-lg z-20 overflow-hidden"
+              className="absolute right-0 mt-2 w-56 rounded-xl bg-surface backdrop-blur-md border border-border shadow-lg z-[101] overflow-hidden"
             >
               {/* 主题列表 */}
               <div className="py-1">

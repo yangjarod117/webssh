@@ -1,4 +1,4 @@
-# Flassh Terminal
+# Flassh
 
 > **⚠️ 声明：此项目为纯 AI 生成，本人不懂编程，也不会编程，纯属自娱自乐。**
 
@@ -25,31 +25,31 @@
 
 ```bash
 docker run -d \
-  --name webssh \
+  --name flassh \
   -p 4000:4000 \
-  -v webssh-data:/app/data \
+  -v flassh-data:/app/data \
   --restart unless-stopped \
-  yangjarod117/webssh:latest
+  yangjarod117/flassh:latest
 ```
 
 或使用 Docker Compose：
 
 ```yaml
 services:
-  webssh:
-    image: yangjarod117/webssh:latest
-    container_name: webssh
+  flassh:
+    image: yangjarod117/flassh:latest
+    container_name: flassh
     ports:
       - "4000:4000"
     volumes:
-      - webssh-data:/app/data  # 持久化凭据存储
+      - flassh-data:/app/data  # 持久化凭据存储
     environment:
       - TZ=Asia/Shanghai
       - CREDENTIAL_KEY=your-32-byte-hex-key  # 可选：自定义加密密钥
     restart: unless-stopped
 
 volumes:
-  webssh-data:
+  flassh-data:
 ```
 
 ```bash
@@ -62,8 +62,8 @@ docker-compose up -d
 
 ```bash
 # 克隆代码
-git clone https://github.com/yangjarod117/webssh.git
-cd webssh
+git clone https://github.com/yangjarod117/flassh.git
+cd flassh
 
 # 安装依赖
 cd backend && npm install && cd ..
@@ -82,8 +82,8 @@ NODE_ENV=production node dist/index.js
 ### 构建 Docker 镜像
 
 ```bash
-docker build -t yangjarod117/webssh:latest .
-docker push yangjarod117/webssh:latest
+docker build -t yangjarod117/flassh:latest .
+docker push yangjarod117/flassh:latest
 ```
 
 ## 功能说明
@@ -133,6 +133,7 @@ docker push yangjarod117/webssh:latest
 | PORT | 服务端口 | 4000 |
 | NODE_ENV | 运行环境 | development |
 | CREDENTIAL_KEY | 凭据加密密钥（64位hex字符串） | 随机生成 |
+| CREDENTIAL_STORE_PATH | 凭据存储路径 | ./data/credentials.json |
 
 ### 生成加密密钥
 
@@ -146,7 +147,6 @@ python3 -c "import secrets; print(secrets.token_hex(32))"
 # 或使用 Node.js
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
-| CREDENTIAL_STORE_PATH | 凭据存储路径 | ./data/credentials.json |
 
 ## 技术栈
 

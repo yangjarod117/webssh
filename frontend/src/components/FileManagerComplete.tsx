@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
-import { FileExplorer } from './FileExplorer'
+import { FileExplorer, addFavorite } from './FileExplorer'
 import { ContextMenu, generateContextMenuItems } from './ContextMenu'
 import { ConfirmDialog, InputDialog } from './Dialog'
 import { FileConflictDialog } from './FileConflictDialog'
@@ -8,7 +8,11 @@ import { createFile, createDirectory, renameFile, deleteFile, deleteDirectory, c
 import type { FileItem, ContextMenuPosition, TransferProgress } from '../types'
 
 export interface FileManagerCompleteProps {
-  sessionId: string; onFileOpen?: (file: FileItem) => void; onFileEdit?: (file: FileItem) => void; onOpenTerminalInDir?: (path: string) => void
+  sessionId: string
+  serverKey?: string // host:port 用于持久化收藏
+  onFileOpen?: (file: FileItem) => void
+  onFileEdit?: (file: FileItem) => void
+  onOpenTerminalInDir?: (path: string) => void
 }
 
 const formatSize = (bytes: number) => {
@@ -18,11 +22,13 @@ const formatSize = (bytes: number) => {
 }
 const formatSpeed = (bps: number) => bps < 1024 ? `${bps.toFixed(0)} B/s` : bps < 1048576 ? `${(bps / 1024).toFixed(1)} KB/s` : `${(bps / 1048576).toFixed(1)} MB/s`
 
-export function FileManagerComplete({ sessionId, onFileOpen, onFileEdit, onOpenTerminalInDir }: FileManagerCompleteProps) {
+export function FileManagerComplete({ sessionId, serverKey, onFileOpen, onFileEdit, onOpenTerminalInDir }: FileManagerCompleteProps) {
+  const favoriteStoreKey = serverKey || sessionId // 优先使用 serverKey 作为收藏存储 key
   const [currentPath, setCurrentPath] = useState('/')
   const [selectedFile, setSelectedFile] = useState<FileItem | null>(null)
   const [files, setFiles] = useState<FileItem[]>([])
   const [refreshKey, setRefreshKey] = useState(0)
+  const [favoriteKey, setFavoriteKey] = useState(0)
   const [contextMenu, setContextMenu] = useState<{ file: FileItem; position: ContextMenuPosition } | null>(null)
   const [dialogs, setDialogs] = useState({ newFile: false, newFolder: false, rename: false, delete: false })
   const [isLoading, setIsLoading] = useState(false)
@@ -141,6 +147,18 @@ export function FileManagerComplete({ sessionId, onFileOpen, onFileEdit, onOpenT
 
   const handleOpenTerminal = () => { if (selectedFile?.type === 'directory') { onOpenTerminalInDir?.(selectedFile.path); closeContextMenu() } }
 
+  const handleFavorite = () => {
+    if (!selectedFile) return
+    addFavorite(favoriteStoreKey, {
+      path: selectedFile.path,
+      name: selectedFile.name,
+      type: selectedFile.type === 'directory' ? 'directory' : 'file'
+    })
+    showToast('success', '已添加到收藏')
+    setFavoriteKey(k => k + 1) // 触发 FileExplorer 刷新收藏
+    closeContextMenu()
+  }
+
   const menuItems = contextMenu ? generateContextMenuItems({
     file: contextMenu.file, onOpen: handleOpen, onEdit: handleEdit,
     onRename: () => { setDialog('rename', true); closeContextMenu() },
@@ -150,15 +168,17 @@ export function FileManagerComplete({ sessionId, onFileOpen, onFileEdit, onOpenT
     onNewFile: () => { setDialog('newFile', true); closeContextMenu() },
     onNewFolder: () => { setDialog('newFolder', true); closeContextMenu() },
     onOpenTerminal: handleOpenTerminal,
+    onFavorite: handleFavorite,
   }) : []
 
   return (
     <div className="relative h-full" onDragEnter={handleDragEnter} onDragLeave={handleDragLeave} onDragOver={handleDragOver} onDrop={handleDrop}>
       <input ref={fileInputRef} type="file" multiple className="hidden" onChange={e => handleFileSelect(e.target.files)} />
       
-      <FileExplorer key={refreshKey} sessionId={sessionId} currentPath={currentPath} onPathChange={setCurrentPath} onFileSelect={setSelectedFile}
+      <FileExplorer sessionId={sessionId} currentPath={currentPath} onPathChange={setCurrentPath} onFileSelect={setSelectedFile}
         onFileDoubleClick={file => { if (file.type !== 'directory') onFileEdit?.(file) }}
-        onContextMenu={(file, pos) => { setSelectedFile(file); setContextMenu({ file, position: pos }) }} />
+        onContextMenu={(file, pos) => { setSelectedFile(file); setContextMenu({ file, position: pos }) }}
+        favoriteKey={favoriteKey} favoriteStoreKey={favoriteStoreKey} />
 
       {isDragging && (
         <div className="absolute inset-0 z-40 bg-primary/20 border-2 border-dashed border-primary flex items-center justify-center">

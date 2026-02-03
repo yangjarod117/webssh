@@ -1,4 +1,4 @@
-# WebSSH Terminal
+# Flassh Terminal
 
 > **⚠️ 声明：此项目为纯 AI 生成，本人不懂编程，也不会编程，纯属自娱自乐。**
 

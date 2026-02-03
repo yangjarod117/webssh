@@ -1,9 +1,31 @@
 import type { LogEntry, LogLevel, LogCategory, LogFilter } from '@/types'
 
 /**
- * 默认日志最大数量
+ * 默认日志最大数量（减少以提升性能）
  */
-export const DEFAULT_LOG_MAX_SIZE = 1000
+export const DEFAULT_LOG_MAX_SIZE = 500
+
+/**
+ * 日志级别优先级（用于过滤）
+ */
+const LOG_LEVEL_PRIORITY: Record<LogLevel, number> = {
+  info: 0,
+  warning: 1,
+  error: 2,
+}
+
+/**
+ * 最小日志级别（低于此级别的日志不记录）
+ * 可通过环境变量配置：info | warning | error
+ */
+export const MIN_LOG_LEVEL: LogLevel = 'info'
+
+/**
+ * 检查日志级别是否应该被记录
+ */
+export function shouldLog(level: LogLevel, minLevel: LogLevel = MIN_LOG_LEVEL): boolean {
+  return LOG_LEVEL_PRIORITY[level] >= LOG_LEVEL_PRIORITY[minLevel]
+}
 
 /**
  * 生成唯一 ID

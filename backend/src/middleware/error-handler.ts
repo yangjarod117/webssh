@@ -8,11 +8,15 @@ const errorCodeMap: Record<string, { code: string; status: number }> = {
   ECONNREFUSED: { code: 'CONNECTION_REFUSED', status: 503 },
   ENOTFOUND: { code: 'HOST_NOT_FOUND', status: 503 },
   ETIMEDOUT: { code: 'CONNECTION_TIMEOUT', status: 504 },
+  'CONNECTION TIMEOUT': { code: 'CONNECTION_TIMEOUT', status: 504 },
+  'NO RESPONSE': { code: 'CONNECTION_TIMEOUT', status: 504 },
   ENOENT: { code: 'FILE_NOT_FOUND', status: 404 },
   EACCES: { code: 'PERMISSION_DENIED', status: 403 },
   EEXIST: { code: 'FILE_EXISTS', status: 409 },
   ENOSPC: { code: 'DISK_FULL', status: 507 },
   AUTHENTICATION_FAILED: { code: 'AUTH_FAILED', status: 401 },
+  'CANNOT PARSE': { code: 'INVALID_KEY', status: 400 },
+  'UNSUPPORTED KEY': { code: 'INVALID_KEY', status: 400 },
 }
 
 /**
@@ -69,6 +73,7 @@ function getErrorMessage(code: string, originalMessage: string): string {
     FILE_EXISTS: '文件或目录已存在',
     DISK_FULL: '磁盘空间不足',
     AUTH_FAILED: '认证失败，请检查用户名和密码',
+    INVALID_KEY: '私钥格式无效，请检查私钥内容',
     INTERNAL_ERROR: '服务器内部错误',
   }
   

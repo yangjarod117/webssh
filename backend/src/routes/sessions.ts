@@ -1,5 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express'
 import { sshManager } from '../services/ssh-manager.js'
+import { credentialStore } from '../services/credential-store.js'
 import type { CreateSessionRequest, CreateSessionResponse, ApiError } from '../types/index.js'
 
 const router = Router()
@@ -10,7 +11,34 @@ const router = Router()
  */
 router.post('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const config: CreateSessionRequest = req.body
+    let config: CreateSessionRequest = req.body
+
+    // 如果请求使用保存的凭据
+    if (req.body.useStoredCredentials && req.body.host && req.body.username) {
+      // 查找匹配的保存凭据
+      const connections = credentialStore.getConnections()
+      const matchingConnection = connections.find(c => 
+        c.host === req.body.host && 
+        c.port === req.body.port && 
+        c.username === req.body.username &&
+        c.hasStoredCredentials
+      )
+      
+      if (matchingConnection) {
+        const storedCreds = credentialStore.get(matchingConnection.id)
+        if (storedCreds) {
+          config = {
+            host: storedCreds.host,
+            port: storedCreds.port,
+            username: storedCreds.username,
+            authType: storedCreds.authType,
+            password: storedCreds.password,
+            privateKey: storedCreds.privateKey,
+            passphrase: storedCreds.passphrase,
+          }
+        }
+      }
+    }
 
     // 验证必填字段
     if (!config.host || !config.port || !config.username || !config.authType) {

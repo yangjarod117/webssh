@@ -1,7 +1,11 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import type { LogEntry, LogLevel, LogFilter } from '@/types'
 import { filterLogs, sortLogsByTime } from '@/utils/logs'
 import { ConfirmDialog } from './Dialog'
+import { VirtualList } from './VirtualList'
+
+const LOG_ITEM_HEIGHT = 72 // 预估每条日志的高度
+const VIRTUAL_THRESHOLD = 100 // 超过此数量使用虚拟列表
 
 /**
  * 日志面板属性
@@ -275,6 +279,11 @@ export function LogPanel({ logs, onClear, onFilter }: LogPanelProps) {
     setShowClearConfirm(false)
   }
 
+  // 渲染日志项
+  const renderLogItem = useCallback((log: LogEntry) => (
+    <LogItem key={log.id} log={log} />
+  ), [])
+
   return (
     <div className="flex flex-col h-full bg-background">
       {/* 筛选栏 */}
@@ -287,15 +296,25 @@ export function LogPanel({ logs, onClear, onFilter }: LogPanelProps) {
       />
 
       {/* 日志列表 */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-hidden">
         {filteredLogs.length === 0 ? (
           <div className="flex items-center justify-center h-full text-secondary">
             {logs.length === 0 ? '暂无日志' : '没有符合条件的日志'}
           </div>
+        ) : filteredLogs.length > VIRTUAL_THRESHOLD ? (
+          <VirtualList
+            items={filteredLogs}
+            itemHeight={LOG_ITEM_HEIGHT}
+            renderItem={renderLogItem}
+            getKey={(log) => log.id}
+            className="h-full"
+          />
         ) : (
-          filteredLogs.map((log) => (
-            <LogItem key={log.id} log={log} />
-          ))
+          <div className="h-full overflow-y-auto">
+            {filteredLogs.map((log) => (
+              <LogItem key={log.id} log={log} />
+            ))}
+          </div>
         )}
       </div>
 

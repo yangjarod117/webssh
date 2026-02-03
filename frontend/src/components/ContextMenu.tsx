@@ -77,14 +77,12 @@ export function ContextMenu({ items, position, onClose }: ContextMenuProps) {
   return (
     <div
       ref={menuRef}
-      className="fixed z-dropdown min-w-[180px] py-1 rounded-lg overflow-hidden"
+      className="fixed z-dropdown min-w-[180px] py-1 rounded-lg overflow-hidden bg-surface border border-border"
       style={{ 
         left: position.x, 
         top: position.y,
-        background: 'rgba(17, 24, 39, 0.95)',
         backdropFilter: 'blur(16px)',
-        border: '1px solid rgba(0, 212, 255, 0.2)',
-        boxShadow: '0 10px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 212, 255, 0.1)',
+        boxShadow: '0 10px 40px rgba(0, 0, 0, 0.2), 0 0 20px rgba(0, 0, 0, 0.1)',
         animation: 'dropdownEnter 200ms cubic-bezier(0.34, 1.56, 0.64, 1)'
       }}
     >
@@ -143,6 +141,11 @@ function getMenuIcon(iconName: string): React.ReactNode {
     open: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z" />
+      </svg>
+    ),
+    favorite: (
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
       </svg>
     ),
     edit: (
@@ -214,6 +217,7 @@ export interface GenerateMenuItemsOptions {
   onNewFile: () => void
   onNewFolder: () => void
   onOpenTerminal?: () => void
+  onFavorite?: () => void
 }
 
 export function generateContextMenuItems(options: GenerateMenuItemsOptions): ContextMenuItem[] {
@@ -229,6 +233,7 @@ export function generateContextMenuItems(options: GenerateMenuItemsOptions): Con
     onNewFile,
     onNewFolder,
     onOpenTerminal,
+    onFavorite,
   } = options
 
   if (file.type === 'directory') {
@@ -240,6 +245,19 @@ export function generateContextMenuItems(options: GenerateMenuItemsOptions): Con
         icon: 'open',
         onClick: onOpen,
       },
+    ]
+
+    // 添加收藏选项
+    if (onFavorite) {
+      items.push({
+        id: 'favorite',
+        label: '添加到收藏',
+        icon: 'favorite',
+        onClick: onFavorite,
+      })
+    }
+
+    items.push(
       {
         id: 'upload',
         label: '上传文件',
@@ -252,7 +270,7 @@ export function generateContextMenuItems(options: GenerateMenuItemsOptions): Con
         icon: 'download',
         onClick: onDownload,
       },
-    ]
+    )
 
     // 添加"在此目录打开终端"选项
     if (onOpenTerminal) {
@@ -301,13 +319,26 @@ export function generateContextMenuItems(options: GenerateMenuItemsOptions): Con
     return items
   } else {
     // 文件菜单项（包括普通文件和符号链接）
-    return [
+    const items: ContextMenuItem[] = [
       {
         id: 'open',
         label: '打开',
         icon: 'open',
         onClick: onOpen,
       },
+    ]
+
+    // 添加收藏选项
+    if (onFavorite) {
+      items.push({
+        id: 'favorite',
+        label: '添加到收藏',
+        icon: 'favorite',
+        onClick: onFavorite,
+      })
+    }
+
+    items.push(
       {
         id: 'edit',
         label: '编辑',
@@ -339,7 +370,9 @@ export function generateContextMenuItems(options: GenerateMenuItemsOptions): Con
         icon: 'copy',
         onClick: onCopyPath,
       },
-    ]
+    )
+
+    return items
   }
 }
 

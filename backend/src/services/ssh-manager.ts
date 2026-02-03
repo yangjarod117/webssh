@@ -70,8 +70,12 @@ export class SSHManager {
         port: config.port,
         username: config.username,
         readyTimeout: 10000,
-        keepaliveInterval: 10000, // 每10秒发送keepalive
-        keepaliveCountMax: 3, // 最多3次无响应后断开
+        keepaliveInterval: 5000, // 每5秒发送keepalive，保持连接活跃
+        keepaliveCountMax: 3,
+        // 性能优化
+        algorithms: {
+          cipher: ['aes128-ctr', 'aes192-ctr', 'aes256-ctr'], // 更快的加密算法
+        },
       }
 
       if (config.authType === 'password' && config.password) {
@@ -138,23 +142,18 @@ export class SSHManager {
 
     // 如果已有 shell，不重复创建
     if (session.shell) {
-      console.log(`[SSHManager] Shell already exists for session ${sessionId}`)
       return session.shell
     }
 
     return new Promise((resolve, reject) => {
-      console.log(`[SSHManager] Creating shell for session ${sessionId} with cols=${cols}, rows=${rows}`)
       session.connection.shell(
         { cols, rows, term: 'xterm-256color' },
         (err, stream) => {
           if (err) {
-            console.error(`[SSHManager] Failed to create shell for session ${sessionId}:`, err)
             reject(err)
             return
           }
-          console.log(`[SSHManager] Shell created successfully for session ${sessionId}`)
           session.shell = stream
-          // 返回 stream 以便调用者立即设置监听器
           resolve(stream)
         }
       )

@@ -179,7 +179,7 @@ export function ConnectionPage({ onConnect, onBack }: ConnectionPageProps) {
               </svg>
             </div>
             <h1 className="text-lg font-semibold text-text">
-              {onBack ? '添加新连接' : 'WebSSH'}
+              {onBack ? '添加新连接' : 'Flassh'}
             </h1>
           </div>
         </div>

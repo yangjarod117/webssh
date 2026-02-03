@@ -34,10 +34,14 @@ const GlowAccents = memo(() => (
 const MemoizedTerminalPanel = memo(TerminalPanel, (prev, next) => prev.sessionId === next.sessionId && prev.isActive === next.isActive)
 
 interface WorkspacePageProps {
-  session: SessionState; sessions: Map<string, SessionState>; onDisconnect: () => void; onAddConnection: () => void
+  session: SessionState
+  sessions: Map<string, SessionState>
+  onDisconnect: () => void
+  onAddConnection: () => void
+  onSessionReconnect?: (oldSessionId: string, newSessionId: string) => void
 }
 
-export function WorkspacePage({ session, sessions, onDisconnect, onAddConnection }: WorkspacePageProps) {
+export function WorkspacePage({ session, sessions, onDisconnect, onAddConnection, onSessionReconnect: _onSessionReconnect }: WorkspacePageProps) {
   const [showLogPanel, setShowLogPanel] = useState(false)
   const [logsMap, setLogsMap] = useState<Map<string, LogEntry[]>>(new Map())
   const [largeFileWarning, setLargeFileWarning] = useState<{ file: FileItem; sessionId: string } | null>(null)
@@ -118,9 +122,9 @@ export function WorkspacePage({ session, sessions, onDisconnect, onAddConnection
         <div className="h-full flex">
           <div className="flex-1">
             <SplitLayout
-              left={<div className="w-full h-full relative">{sessionEntries.map(([sid]) => (
+              left={<div className="w-full h-full relative">{sessionEntries.map(([sid, sess]) => (
                 <div key={`fm-${sid}`} className="absolute inset-0 bg-surface" style={{ display: sid === activeSessionId ? 'block' : 'none' }}>
-                  <FileManagerComplete sessionId={sid} onFileEdit={f => openFileHandler(f, sid)} onFileOpen={f => openFileHandler(f, sid)}
+                  <FileManagerComplete sessionId={sid} serverKey={`${sess.config.host}:${sess.config.port}`} onFileEdit={f => openFileHandler(f, sid)} onFileOpen={f => openFileHandler(f, sid)}
                     onOpenTerminalInDir={path => { const ws = terminalWsMapRef.current.get(sid); ws?.readyState === WebSocket.OPEN && ws.send(JSON.stringify({ type: 'input', sessionId: sid, data: `cd "${path}"\n` })) }} />
                 </div>
               ))}</div>}
@@ -156,7 +160,7 @@ export function WorkspacePage({ session, sessions, onDisconnect, onAddConnection
       {largeFileWarning && <LargeFileWarningDialog isOpen onClose={() => setLargeFileWarning(null)} onConfirm={() => { loadFile(largeFileWarning.file, largeFileWarning.sessionId); setLargeFileWarning(null) }} fileName={largeFileWarning.file.name} fileSize={largeFileWarning.file.size} />}
 
       {/* 侧边面板 */}
-      {sessionEntries.map(([sid]) => <div key={`sp-${sid}`} style={{ visibility: sid === activeSessionId ? 'visible' : 'hidden', pointerEvents: sid === activeSessionId ? 'auto' : 'none' }}><SidePanel sessionId={sid} /></div>)}
+      {sessionEntries.map(([sid]) => sid === activeSessionId && <SidePanel key={`sp-${sid}`} sessionId={sid} />)}
     </div>
   )
 }

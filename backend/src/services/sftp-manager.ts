@@ -13,7 +13,10 @@ export class SFTPManager {
     const session = sshManager.getSession(sessionId)
     if (!session) throw new Error('Session not found')
 
-    await sshManager.getSFTP(sessionId)
+    // 确保 SFTP 已初始化（只在首次调用时）
+    if (!session.sftp) {
+      await sshManager.getSFTP(sessionId)
+    }
     const sftp = session.sftp
     if (!sftp) throw new Error('SFTP not initialized')
 
@@ -42,15 +45,23 @@ export class SFTPManager {
   }
 
   /**
+   * 获取 SFTP 客户端（内部使用，带缓存）
+   */
+  private async ensureSFTP(sessionId: string) {
+    const session = sshManager.getSession(sessionId)
+    if (!session) throw new Error('Session not found')
+    if (!session.sftp) {
+      await sshManager.getSFTP(sessionId)
+    }
+    if (!session.sftp) throw new Error('SFTP not initialized')
+    return session.sftp
+  }
+
+  /**
    * 读取文件内容
    */
   async readFile(sessionId: string, path: string): Promise<string> {
-    const session = sshManager.getSession(sessionId)
-    if (!session) throw new Error('Session not found')
-
-    await sshManager.getSFTP(sessionId)
-    const sftp = session.sftp
-    if (!sftp) throw new Error('SFTP not initialized')
+    const sftp = await this.ensureSFTP(sessionId)
 
     return new Promise((resolve, reject) => {
       const chunks: Buffer[] = []
@@ -74,12 +85,7 @@ export class SFTPManager {
    * 写入文件内容
    */
   async writeFile(sessionId: string, path: string, content: string): Promise<void> {
-    const session = sshManager.getSession(sessionId)
-    if (!session) throw new Error('Session not found')
-
-    await sshManager.getSFTP(sessionId)
-    const sftp = session.sftp
-    if (!sftp) throw new Error('SFTP not initialized')
+    const sftp = await this.ensureSFTP(sessionId)
 
     return new Promise((resolve, reject) => {
       const stream = sftp.createWriteStream(path)
@@ -100,12 +106,7 @@ export class SFTPManager {
    * 创建目录
    */
   async createDirectory(sessionId: string, path: string): Promise<void> {
-    const session = sshManager.getSession(sessionId)
-    if (!session) throw new Error('Session not found')
-
-    await sshManager.getSFTP(sessionId)
-    const sftp = session.sftp
-    if (!sftp) throw new Error('SFTP not initialized')
+    const sftp = await this.ensureSFTP(sessionId)
 
     return new Promise((resolve, reject) => {
       sftp.mkdir(path, (err) => {
@@ -129,12 +130,7 @@ export class SFTPManager {
    * 删除文件
    */
   async deleteFile(sessionId: string, path: string): Promise<void> {
-    const session = sshManager.getSession(sessionId)
-    if (!session) throw new Error('Session not found')
-
-    await sshManager.getSFTP(sessionId)
-    const sftp = session.sftp
-    if (!sftp) throw new Error('SFTP not initialized')
+    const sftp = await this.ensureSFTP(sessionId)
 
     return new Promise((resolve, reject) => {
       sftp.unlink(path, (err) => {
@@ -151,12 +147,7 @@ export class SFTPManager {
    * 删除目录
    */
   async deleteDirectory(sessionId: string, path: string): Promise<void> {
-    const session = sshManager.getSession(sessionId)
-    if (!session) throw new Error('Session not found')
-
-    await sshManager.getSFTP(sessionId)
-    const sftp = session.sftp
-    if (!sftp) throw new Error('SFTP not initialized')
+    const sftp = await this.ensureSFTP(sessionId)
 
     // 递归删除目录内容
     const files = await this.listDirectory(sessionId, path)
@@ -183,12 +174,7 @@ export class SFTPManager {
    * 重命名文件或目录
    */
   async rename(sessionId: string, oldPath: string, newPath: string): Promise<void> {
-    const session = sshManager.getSession(sessionId)
-    if (!session) throw new Error('Session not found')
-
-    await sshManager.getSFTP(sessionId)
-    const sftp = session.sftp
-    if (!sftp) throw new Error('SFTP not initialized')
+    const sftp = await this.ensureSFTP(sessionId)
 
     return new Promise((resolve, reject) => {
       sftp.rename(oldPath, newPath, (err) => {
@@ -205,12 +191,7 @@ export class SFTPManager {
    * 获取文件信息
    */
   async stat(sessionId: string, path: string): Promise<FileStats> {
-    const session = sshManager.getSession(sessionId)
-    if (!session) throw new Error('Session not found')
-
-    await sshManager.getSFTP(sessionId)
-    const sftp = session.sftp
-    if (!sftp) throw new Error('SFTP not initialized')
+    const sftp = await this.ensureSFTP(sessionId)
 
     return new Promise((resolve, reject) => {
       sftp.stat(path, (err, stats) => {

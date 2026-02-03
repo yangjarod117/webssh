@@ -87,18 +87,31 @@ function TabItem({
       className={`
         group flex items-center gap-2 px-3 py-2 min-w-[120px] max-w-[200px]
         cursor-pointer select-none transition-all duration-200 ease-out
-        relative first:rounded-l-lg last:rounded-r-lg
+        relative first:rounded-l-lg last:rounded-r-lg rounded-lg
         ${isActive
-          ? 'bg-primary/40 text-white scale-[1.02] shadow-lg'
-          : 'bg-black/20 text-secondary/50 hover:bg-white/10 hover:text-white hover:scale-[1.01]'
+          ? 'bg-primary/60 text-text scale-110'
+          : 'bg-surface-alt text-text-muted opacity-60 hover:text-text hover:opacity-100 hover:scale-[1.01]'
         }
       `}
       style={isActive ? {
-        boxShadow: '0 0 25px rgba(0, 212, 255, 0.35), inset 0 0 20px rgba(0, 212, 255, 0.1)',
-        borderRadius: '8px',
-        border: '1px solid rgba(0, 212, 255, 0.3)',
-      } : {
-        borderRadius: '8px',
+        boxShadow: '0 0 25px rgba(0, 212, 255, 0.7), 0 0 50px rgba(0, 212, 255, 0.5), 0 0 75px rgba(0, 212, 255, 0.3), inset 0 0 20px rgba(0, 212, 255, 0.2)',
+        border: '1px solid rgba(0, 212, 255, 0.6)',
+      } : undefined}
+      onMouseEnter={(e) => {
+        if (!isActive) {
+          e.currentTarget.style.backdropFilter = 'blur(12px)'
+          e.currentTarget.style.background = 'rgba(var(--color-primary-rgb, 0, 212, 255), 0.15)'
+          e.currentTarget.style.border = '1px solid rgba(var(--color-primary-rgb, 0, 212, 255), 0.3)'
+          e.currentTarget.style.boxShadow = '0 4px 16px rgba(0, 0, 0, 0.1)'
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!isActive) {
+          e.currentTarget.style.backdropFilter = ''
+          e.currentTarget.style.background = ''
+          e.currentTarget.style.border = ''
+          e.currentTarget.style.boxShadow = ''
+        }
       }}
       onClick={onSelect}
       onDoubleClick={handleDoubleClick}
@@ -132,7 +145,7 @@ function TabItem({
           style={{ boxShadow: '0 1px 0 var(--color-primary)' }}
         />
       ) : (
-        <span className="flex-1 min-w-0 truncate text-sm">{tab.name}</span>
+        <span className={`flex-1 min-w-0 truncate ${isActive ? 'text-lg font-bold' : 'text-sm'}`}>{tab.name}</span>
       )}
 
       {/* 关闭按钮 */}

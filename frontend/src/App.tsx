@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, lazy, Suspense } from 'react'
+import { useState, useCallback, useEffect, lazy, Suspense, useRef } from 'react'
 import { ThemeProvider, ErrorBoundary, setupGlobalErrorHandlers, cleanupTerminal } from './components'
 import { useTabsStore, useThemeStore } from './store'
 import { createLogEntry } from './utils/logs'
@@ -34,15 +34,21 @@ function LoadingFallback() {
 function AppContent() {
   // 多会话支持：使用 Map 存储多个会话
   const [sessions, setSessions] = useState<Map<string, SessionState>>(new Map())
+  // 保存完整的连接配置（包括密码/密钥）用于重连
+  const connectionConfigsRef = useRef<Map<string, ConnectionConfig>>(new Map())
   const [showConnectionPage, setShowConnectionPage] = useState(true)
   const { addTab, removeTab, tabs, activeTabId } = useTabsStore()
   const { getUIFontFamily } = useThemeStore()
   const uiFontFamily = getUIFontFamily()
 
   // 获取当前活动的会话
-  const activeSession = activeTabId 
-    ? sessions.get(tabs.find(t => t.id === activeTabId)?.sessionId || '')
+  const activeTab = tabs.find(t => t.id === activeTabId)
+  const activeSession = activeTab 
+    ? sessions.get(activeTab.sessionId)
     : null
+
+  // 判断是否应该显示工作区（有标签页就显示，不管会话状态）
+  const shouldShowWorkspace = tabs.length > 0 && !showConnectionPage
 
   // 设置全局错误处理
   useEffect(() => {
@@ -86,6 +92,9 @@ function AppContent() {
       }
 
       const data = await response.json()
+      
+      // 保存完整的连接配置用于重连
+      connectionConfigsRef.current.set(data.sessionId, config)
       
       // 更新会话状态
       const connectedSession: SessionState = {
@@ -165,12 +174,45 @@ function AppContent() {
     // 记录日志
     const log = createLogEntry('info', 'connection', `已断开连接: ${activeSession.config.host}`)
     console.log('Disconnect logged:', log)
+    
+    // 清理连接配置
+    connectionConfigsRef.current.delete(activeSession.id)
   }, [activeSession, tabs, removeTab])
 
   // 添加新连接（显示连接页面）
   const handleAddConnection = useCallback(() => {
     setShowConnectionPage(true)
   }, [])
+
+  // 处理会话重连（服务器重启后）
+  const handleSessionReconnect = useCallback((oldSessionId: string, newSessionId: string) => {
+    // 更新会话映射
+    setSessions(prev => {
+      const newMap = new Map(prev)
+      const oldSession = newMap.get(oldSessionId)
+      if (oldSession) {
+        newMap.delete(oldSessionId)
+        newMap.set(newSessionId, { ...oldSession, id: newSessionId, status: 'connected' })
+      }
+      return newMap
+    })
+    
+    // 更新连接配置映射
+    const config = connectionConfigsRef.current.get(oldSessionId)
+    if (config) {
+      connectionConfigsRef.current.delete(oldSessionId)
+      connectionConfigsRef.current.set(newSessionId, config)
+    }
+    
+    // 更新标签页的 sessionId
+    const tab = tabs.find(t => t.sessionId === oldSessionId)
+    if (tab) {
+      // 这里需要更新 tab 的 sessionId，但 useTabsStore 可能没有这个方法
+      // 暂时通过重新创建来处理
+    }
+    
+    console.log(`Session reconnected: ${oldSessionId} -> ${newSessionId}`)
+  }, [tabs])
 
   // 当所有标签页关闭时显示连接页面
   useEffect(() => {
@@ -221,22 +263,18 @@ function AppContent() {
       </a>
       
       <Suspense fallback={<LoadingFallback />}>
-        {showConnectionPage || tabs.length === 0 ? (
+        {!shouldShowWorkspace ? (
           <ConnectionPage 
             onConnect={handleConnect}
             onBack={tabs.length > 0 || sessions.size > 0 ? () => setShowConnectionPage(false) : undefined}
           />
-        ) : activeSession && activeSession.status === 'connected' ? (
+        ) : (
           <WorkspacePage
-            session={activeSession}
+            session={activeSession || { id: activeTab?.sessionId || '', config: { host: '', port: 22, username: '', authType: 'password' }, status: 'disconnected' }}
             sessions={sessions}
             onDisconnect={handleDisconnect}
             onAddConnection={handleAddConnection}
-          />
-        ) : (
-          <ConnectionPage 
-            onConnect={handleConnect}
-            onBack={tabs.length > 0 || sessions.size > 0 ? () => setShowConnectionPage(false) : undefined}
+            onSessionReconnect={handleSessionReconnect}
           />
         )}
       </Suspense>

@@ -85,7 +85,7 @@ export function SidePanel({ sessionId }: { sessionId: string }) {
 
   return (
     <>
-      <button onClick={() => setIsOpen(!isOpen)} className={`fixed top-1/2 -translate-y-1/2 p-2 rounded-l-xl shadow-lg transition-all duration-300 backdrop-blur-sm ${isOpen ? 'right-80 text-white bg-primary' : 'right-0 border border-border hover:border-primary/50 text-text-secondary hover:text-primary bg-surface/80'}`} style={{ zIndex: 70 }} title={isOpen ? '收起面板' : '展开面板'}>
+      <button onClick={() => setIsOpen(!isOpen)} className={`fixed top-1/2 -translate-y-1/2 p-2 rounded-l-xl shadow-lg transition-all duration-300 backdrop-blur-sm ${isOpen ? 'right-80 text-white bg-primary' : 'right-0 border border-border hover:border-primary/50 text-text-secondary hover:text-primary bg-surface/80'}`} style={{ zIndex: 70, maxWidth: '100vw' }} title={isOpen ? '收起面板' : '展开面板'}>
         <svg className={`w-5 h-5 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
       </button>
 

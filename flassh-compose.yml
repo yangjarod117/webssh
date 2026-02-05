@@ -10,6 +10,7 @@ services:
       - TZ=Asia/Shanghai
       - NODE_ENV=production
       - CREDENTIAL_KEY=your-64-char-hex-key-here  # 使用 openssl rand -hex 32 生成
+      # - ACCESS_PASSWORD=your-secret-password  # 可选：设置访问密码保护面板
     restart: unless-stopped
     logging:
       driver: "json-file"

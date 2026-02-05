@@ -92,10 +92,10 @@ export function SidePanel({ sessionId }: { sessionId: string }) {
       <div className={`fixed top-0 right-0 h-full w-80 border-l border-border transform transition-all duration-300 ease-out bg-surface ${isOpen ? 'translate-x-0' : 'translate-x-full'}`} style={{ zIndex: 70, boxShadow: isOpen ? '-10px 0 40px rgba(0,0,0,0.3)' : 'none' }}>
         <div className="flex border-b border-border bg-surface/50">
           {(['monitor', 'history'] as const).map(t => (
-            <button key={t} onClick={() => setTab(t)} className={`flex-1 px-4 py-3 text-sm font-medium transition-all duration-200 relative ${tab === t ? 'text-primary' : 'text-text-secondary hover:text-text'}`}
-              style={tab === t ? { borderBottom: '2px solid var(--color-primary)', boxShadow: '0 2px 10px rgba(0,212,255,0.3)' } : undefined}>
+            <button key={t} onClick={() => setTab(t)} className={`flex-1 m-2 px-4 py-2 text-sm font-medium transition-all duration-200 relative rounded-xl ${tab === t ? 'text-primary bg-primary/15' : 'text-text-secondary hover:text-text hover:bg-surface-hover'}`}
+              style={tab === t ? { border: '1px solid rgba(0,212,255,0.3)', boxShadow: '0 2px 10px rgba(0,212,255,0.2)' } : { border: '1px solid transparent' }}>
               {t === 'monitor' ? '系统监控' : '登录历史'}
-              {t === 'history' && history.some(r => r.status === 'failed') && <span className="absolute top-2 right-2 w-2 h-2 bg-error rounded-full" style={{ boxShadow: '0 0 8px rgba(255,71,87,0.6)' }} />}
+              {t === 'history' && history.some(r => r.status === 'failed') && <span className="absolute top-1 right-1 w-2 h-2 bg-error rounded-full" style={{ boxShadow: '0 0 8px rgba(255,71,87,0.6)' }} />}
             </button>
           ))}
         </div>

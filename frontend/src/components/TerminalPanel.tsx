@@ -465,7 +465,7 @@ export function TerminalPanel({ sessionId, isActive = true, onResize, onData, on
       <div
         ref={terminalRef}
         className="w-full h-full"
-        style={{ padding: '8px 6px 4px 6px' }}
+        style={{ padding: '8px 6px 12px 6px' }}
       />
       {/* 复制/粘贴提示 */}
       {copyHint && (

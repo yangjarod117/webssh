@@ -136,8 +136,23 @@ docker push yangjarod117/flassh:latest
 |------|------|--------|
 | PORT | 服务端口 | 4000 |
 | NODE_ENV | 运行环境 | development |
+| ACCESS_PASSWORD | 访问密码（可选，设置后需要输入密码才能访问） | 空（不需要密码） |
 | CREDENTIAL_KEY | 凭据加密密钥（64位hex字符串） | 随机生成 |
 | CREDENTIAL_STORE_PATH | 凭据存储路径 | ./data/credentials.json |
+
+### 设置访问密码
+
+如果你想保护 Flassh 面板，可以设置访问密码：
+
+```yaml
+services:
+  flassh:
+    image: yangjarod117/flassh:latest
+    environment:
+      - ACCESS_PASSWORD=your-secret-password  # 设置访问密码
+```
+
+设置后，访问页面时会弹出密码输入框，支持"记住密码"功能（7天有效）。
 
 ### 生成加密密钥
 

@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, lazy, Suspense, useRef } from 'react'
-import { ThemeProvider, ErrorBoundary, setupGlobalErrorHandlers, cleanupTerminal } from './components'
+import { ThemeProvider, ErrorBoundary, setupGlobalErrorHandlers, cleanupTerminal, AccessPasswordDialog, hashPassword } from './components'
 import { useTabsStore, useThemeStore } from './store'
 import { createLogEntry } from './utils/logs'
 import type { ConnectionConfig, SessionState } from './types'
@@ -32,14 +32,18 @@ function LoadingFallback() {
  * Requirements: All
  */
 function AppContent() {
+  // 访问密码验证状态
+  const [accessVerified, setAccessVerified] = useState<boolean | null>(null)
+  
   // 多会话支持：使用 Map 存储多个会话
   const [sessions, setSessions] = useState<Map<string, SessionState>>(new Map())
   // 保存完整的连接配置（包括密码/密钥）用于重连
   const connectionConfigsRef = useRef<Map<string, ConnectionConfig>>(new Map())
   const [showConnectionPage, setShowConnectionPage] = useState(true)
   const { addTab, removeTab, tabs, activeTabId } = useTabsStore()
-  const { getUIFontFamily } = useThemeStore()
+  const { getUIFontFamily, getCurrentTheme } = useThemeStore()
   const uiFontFamily = getUIFontFamily()
+  const isLight = getCurrentTheme().type === 'light'
 
   // 获取当前活动的会话
   const activeTab = tabs.find(t => t.id === activeTabId)
@@ -49,6 +53,55 @@ function AppContent() {
 
   // 判断是否应该显示工作区（有标签页就显示，不管会话状态）
   const shouldShowWorkspace = tabs.length > 0 && !showConnectionPage
+
+  // 检查是否需要访问密码（后端会自动检查 cookie）
+  useEffect(() => {
+    const checkAccess = async () => {
+      try {
+        const res = await fetch('/api/access/check', {
+          credentials: 'include',  // 携带 cookie
+        })
+        const { required, verified } = await res.json()
+        
+        if (!required || verified) {
+          setAccessVerified(true)
+        } else {
+          setAccessVerified(false)
+        }
+      } catch {
+        // 如果检查失败，默认不需要密码
+        setAccessVerified(true)
+      }
+    }
+    
+    checkAccess()
+  }, [])
+
+  // 处理密码验证
+  const handleAccessVerify = useCallback(async (password: string, remember: boolean): Promise<boolean> => {
+    try {
+      // 先哈希密码
+      const hashedPassword = await hashPassword(password)
+      
+      const res = await fetch('/api/access/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',  // 携带 cookie
+        body: JSON.stringify({ password: hashedPassword, remember }),
+      })
+      
+      const data = await res.json()
+      
+      if (data.success) {
+        setAccessVerified(true)
+        return true
+      }
+      
+      return false
+    } catch {
+      return false
+    }
+  }, [])
 
   // 设置全局错误处理
   useEffect(() => {
@@ -262,22 +315,33 @@ function AppContent() {
         跳过导航
       </a>
       
-      <Suspense fallback={<LoadingFallback />}>
-        {!shouldShowWorkspace ? (
-          <ConnectionPage 
-            onConnect={handleConnect}
-            onBack={tabs.length > 0 || sessions.size > 0 ? () => setShowConnectionPage(false) : undefined}
-          />
-        ) : (
-          <WorkspacePage
-            session={activeSession || { id: activeTab?.sessionId || '', config: { host: '', port: 22, username: '', authType: 'password' }, status: 'disconnected' }}
-            sessions={sessions}
-            onDisconnect={handleDisconnect}
-            onAddConnection={handleAddConnection}
-            onSessionReconnect={handleSessionReconnect}
-          />
-        )}
-      </Suspense>
+      {/* 访问密码验证 */}
+      {accessVerified === null ? (
+        <LoadingFallback />
+      ) : !accessVerified ? (
+        <AccessPasswordDialog
+          isOpen={true}
+          onVerify={handleAccessVerify}
+          isLight={isLight}
+        />
+      ) : (
+        <Suspense fallback={<LoadingFallback />}>
+          {!shouldShowWorkspace ? (
+            <ConnectionPage 
+              onConnect={handleConnect}
+              onBack={tabs.length > 0 || sessions.size > 0 ? () => setShowConnectionPage(false) : undefined}
+            />
+          ) : (
+            <WorkspacePage
+              session={activeSession || { id: activeTab?.sessionId || '', config: { host: '', port: 22, username: '', authType: 'password' }, status: 'disconnected' }}
+              sessions={sessions}
+              onDisconnect={handleDisconnect}
+              onAddConnection={handleAddConnection}
+              onSessionReconnect={handleSessionReconnect}
+            />
+          )}
+        </Suspense>
+      )}
     </div>
   )
 }

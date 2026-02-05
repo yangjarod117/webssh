@@ -1,5 +1,6 @@
 import express from 'express'
 import cors from 'cors'
+import cookieParser from 'cookie-parser'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { createServer } from 'http'
@@ -9,6 +10,7 @@ import sessionsRouter from './routes/sessions.js'
 import filesRouter from './routes/files.js'
 import monitorRouter from './routes/monitor.js'
 import credentialsRouter from './routes/credentials.js'
+import accessRouter from './routes/access.js'
 import { errorHandler, notFoundHandler } from './middleware/error-handler.js'
 
 // ESM 兼容的 __dirname
@@ -19,7 +21,11 @@ const app = express()
 const PORT = process.env.PORT || 4000
 
 // Middleware
-app.use(cors())
+app.use(cors({
+  credentials: true,  // 允许携带 cookie
+  origin: true,       // 允许所有来源（开发环境）
+}))
+app.use(cookieParser())
 app.use(express.json())
 
 // 生产环境提供前端静态文件
@@ -34,6 +40,7 @@ app.get('/api/health', (_req, res) => {
 })
 
 // Routes
+app.use('/api/access', accessRouter)
 app.use('/api/sessions', sessionsRouter)
 app.use('/api/sessions', filesRouter)
 app.use('/api/sessions', monitorRouter)

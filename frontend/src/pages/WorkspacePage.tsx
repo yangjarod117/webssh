@@ -117,8 +117,8 @@ export function WorkspacePage({ session, sessions, onDisconnect, onAddConnection
 
       <TabBar onAddConnection={onAddConnection} />
 
-      {/* 主内容区 */}
-      <main className="flex-1 overflow-hidden relative z-10">
+      {/* 主内容区 - 使用 pb-2 确保底部不被遮挡 */}
+      <main className="flex-1 overflow-hidden relative z-10 pb-2">
         <div className="h-full flex">
           <div className="flex-1">
             <SplitLayout

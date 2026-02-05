@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, memo } from 'react'
 import type { FileItem } from '../types'
 import { VirtualList } from './VirtualList'
 
@@ -79,39 +79,22 @@ const formatDateTime = (date: Date) => {
   } catch { return { date: '--', time: '' } }
 }
 
-const FileRow = ({ file, selected, onSelect, onDblClick, onCtx }: { file: FileItem; selected: boolean; onSelect: () => void; onDblClick: () => void; onCtx: (e: React.MouseEvent) => void }) => {
+const FileRow = memo(({ file, selected, onSelect, onDblClick, onCtx }: { file: FileItem; selected: boolean; onSelect: () => void; onDblClick: () => void; onCtx: (e: React.MouseEvent) => void }) => {
   const dt = formatDateTime(new Date(file.modifiedTime))
   return (
     <div 
-      className={`flex items-center px-3 cursor-pointer select-none ${selected ? 'bg-primary/25 text-primary' : 'text-text-secondary hover:text-text'}`}
-      style={{ 
-        height: FILE_ITEM_HEIGHT,
-        transition: 'background 150ms ease-out, backdrop-filter 150ms ease-out, transform 150ms ease-out',
-      }} 
+      className={`flex items-center px-3 cursor-pointer select-none ${selected ? 'bg-primary/25 text-primary' : 'text-text-secondary hover:text-text hover:bg-surface/30'}`}
+      style={{ height: FILE_ITEM_HEIGHT }} 
       onClick={onSelect} 
       onDoubleClick={onDblClick} 
       onContextMenu={onCtx}
-      onMouseEnter={(e) => {
-        if (!selected) {
-          e.currentTarget.style.backdropFilter = 'blur(8px)'
-          e.currentTarget.style.background = 'rgba(128, 128, 128, 0.15)'
-          e.currentTarget.style.transform = 'scale(1.02)'
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (!selected) {
-          e.currentTarget.style.backdropFilter = ''
-          e.currentTarget.style.background = ''
-          e.currentTarget.style.transform = ''
-        }
-      }}
     >
       <div className="flex items-center gap-2 flex-1 min-w-0 h-full"><FileIcon type={file.type} name={file.name} /><span className="flex-1 min-w-0 truncate text-sm">{file.name}</span></div>
       <span className="text-xs text-secondary/70 text-left flex-shrink-0 px-2 truncate" style={{ width: COL_WIDTHS.size }}>{file.type === 'directory' ? '文件夹' : formatFileSize(file.size)}</span>
       <span className="text-xs text-secondary/70 text-right flex-shrink-0 px-2 truncate hidden md:block" style={{ width: COL_WIDTHS.time }}>{dt.date} {dt.time}</span>
     </div>
   )
-}
+})
 
 const Breadcrumb = ({ path, onNav }: { path: string; onNav: (p: string) => void }) => {
   const parts = path.split('/').filter(Boolean)

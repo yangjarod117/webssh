@@ -21,11 +21,19 @@ const app = express()
 const PORT = process.env.PORT || 4000
 
 // Middleware
-app.use(cors({
-  credentials: true,  // 允许携带 cookie
-  origin: true,       // 允许所有来源（开发环境）
-}))
-app.use(cookieParser())
+// 生产环境：前后端同源，不需要 CORS
+// 开发环境：前端 3000，后端 4000，需要 CORS
+if (process.env.NODE_ENV !== 'production') {
+  app.use(cors({
+    origin: true,
+    credentials: true,
+  }))
+}
+
+// cookie-parser 只在 access 路由使用
+app.use('/api/access', cookieParser())
+
+// JSON 解析
 app.use(express.json())
 
 // 生产环境提供前端静态文件

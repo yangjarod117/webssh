@@ -87,29 +87,15 @@ function TabItem({
       className={`
         group flex items-center gap-2 px-3 py-2 min-w-[120px] max-w-[200px]
         cursor-pointer select-none transition-all duration-200 ease-out
-        relative rounded-xl border
+        relative rounded-xl
         ${isActive
-          ? 'bg-primary/30 text-text border-primary/60 scale-105'
-          : 'bg-surface/30 border-border/30 text-text-muted opacity-40 hover:opacity-80 hover:text-text hover:border-border/60'
+          ? 'bg-primary/20 text-text scale-105'
+          : 'bg-transparent text-text-muted opacity-40 hover:opacity-80 hover:text-text hover:bg-surface/50'
         }
       `}
       style={isActive ? {
-        boxShadow: '0 0 25px rgba(0, 212, 255, 0.6), 0 0 50px rgba(0, 212, 255, 0.3), inset 0 0 15px rgba(0, 212, 255, 0.15)',
+        boxShadow: '0 0 20px rgba(0, 212, 255, 0.4), inset 0 0 10px rgba(0, 212, 255, 0.1)',
       } : undefined}
-      onMouseEnter={(e) => {
-        if (!isActive) {
-          e.currentTarget.style.backdropFilter = 'blur(12px)'
-          e.currentTarget.style.background = 'rgba(var(--color-primary-rgb, 0, 212, 255), 0.1)'
-          e.currentTarget.style.borderColor = 'rgba(var(--color-primary-rgb, 0, 212, 255), 0.3)'
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (!isActive) {
-          e.currentTarget.style.backdropFilter = ''
-          e.currentTarget.style.background = ''
-          e.currentTarget.style.borderColor = ''
-        }
-      }}
       onClick={onSelect}
       onDoubleClick={handleDoubleClick}
       draggable={!isEditing}

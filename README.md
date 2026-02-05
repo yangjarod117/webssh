@@ -49,9 +49,15 @@ services:
       - flassh-data:/app/data  # 持久化凭据存储
     environment:
       - TZ=Asia/Shanghai
-      - CREDENTIAL_KEY=your-64-char-hex-key  # 可选：自定义加密密钥
-      # - ACCESS_PASSWORD=your-secret-password  # 可选：设置访问密码
+      - NODE_ENV=production
+      - CREDENTIAL_KEY=your-64-char-hex-key-here  # 使用 openssl rand -hex 32 生成
+      # - ACCESS_PASSWORD=your-secret-password  # 可选：设置访问密码保护面板
     restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 volumes:
   flassh-data:

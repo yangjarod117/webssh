@@ -199,7 +199,7 @@ export class SSHManager {
   }
 
   /**
-   * 发送输入到终端
+   * 发送输入到终端 - 直接写入，不更新时间戳（性能优化）
    */
   sendInput(sessionId: string, data: string): boolean {
     const session = this.sessions.get(sessionId)
@@ -207,7 +207,6 @@ export class SSHManager {
 
     try {
       session.shell.write(data)
-      session.lastActivityAt = new Date()
       return true
     } catch {
       return false

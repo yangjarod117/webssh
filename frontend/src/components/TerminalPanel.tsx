@@ -180,19 +180,13 @@ export function TerminalPanel({ sessionId, isActive = true, onResize, onData, on
     xtermRef.current = terminal
     fitAddonRef.current = fitAddon
 
-    // 处理终端输入
+    // 处理终端输入 - 直接发送，最小化开销
     terminal.onData((data) => {
-      if (onData) {
-        onData(data)
-      }
-      // 发送到 WebSocket
+      if (onData) onData(data)
+      // 发送到 WebSocket - 使用预构建的消息格式
       const termData = globalTerminals.get(sessionId)
       if (termData?.ws?.readyState === WebSocket.OPEN) {
-        termData.ws.send(JSON.stringify({
-          type: 'input',
-          sessionId,
-          data,
-        }))
+        termData.ws.send(`{"type":"input","sessionId":"${sessionId}","data":${JSON.stringify(data)}}`)
       }
     })
 
@@ -202,11 +196,7 @@ export function TerminalPanel({ sessionId, isActive = true, onResize, onData, on
         navigator.clipboard.readText().then((text) => {
           const termData = globalTerminals.get(sessionId)
           if (text && termData?.ws?.readyState === WebSocket.OPEN) {
-            termData.ws.send(JSON.stringify({
-              type: 'input',
-              sessionId,
-              data: text,
-            }))
+            termData.ws.send(`{"type":"input","sessionId":"${sessionId}","data":${JSON.stringify(text)}}`)
           }
         }).catch(() => {})
         return false // 阻止默认行为
@@ -216,18 +206,11 @@ export function TerminalPanel({ sessionId, isActive = true, onResize, onData, on
 
     // 处理终端大小变化
     terminal.onResize(({ cols, rows }) => {
-      if (onResize) {
-        onResize(cols, rows)
-      }
+      if (onResize) onResize(cols, rows)
       // 发送到 WebSocket
       const termData = globalTerminals.get(sessionId)
       if (termData?.ws?.readyState === WebSocket.OPEN) {
-        termData.ws.send(JSON.stringify({
-          type: 'resize',
-          sessionId,
-          cols,
-          rows,
-        }))
+        termData.ws.send(`{"type":"resize","sessionId":"${sessionId}","cols":${cols},"rows":${rows}}`)
       }
     })
 
@@ -402,31 +385,42 @@ export function TerminalPanel({ sessionId, isActive = true, onResize, onData, on
     }
   }, [sessionId])
 
-  // 处理窗口大小变化
+  // 处理窗口大小变化 - 使用节流
   const handleResize = useCallback(() => {
     if (fitAddonRef.current && xtermRef.current) {
       // 使用 requestAnimationFrame 确保在布局更新后执行
       requestAnimationFrame(() => {
-        fitAddonRef.current?.fit()
+        try {
+          fitAddonRef.current?.fit()
+        } catch {}
       })
     }
   }, [])
 
   useEffect(() => {
-    window.addEventListener('resize', handleResize)
+    // 节流的 resize 处理
+    let resizeTimeout: ReturnType<typeof setTimeout> | null = null
+    const throttledResize = () => {
+      if (resizeTimeout) return
+      resizeTimeout = setTimeout(() => {
+        resizeTimeout = null
+        handleResize()
+      }, 100)
+    }
+    
+    window.addEventListener('resize', throttledResize)
     
     // 使用 ResizeObserver 监听容器大小变化
-    const resizeObserver = new ResizeObserver(() => {
-      handleResize()
-    })
+    const resizeObserver = new ResizeObserver(throttledResize)
     
     if (containerRef.current) {
       resizeObserver.observe(containerRef.current)
     }
     
     return () => {
-      window.removeEventListener('resize', handleResize)
+      window.removeEventListener('resize', throttledResize)
       resizeObserver.disconnect()
+      if (resizeTimeout) clearTimeout(resizeTimeout)
     }
   }, [handleResize])
 

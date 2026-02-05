@@ -87,20 +87,26 @@ export class WebSocketHandler {
       return
     }
 
-    ws.sessionId = sessionId
-    this.sessionToWs.set(sessionId, ws)
-
-    if (!session.shell) {
-      try {
-        const shell = await sshManager.createShell(sessionId)
-        if (shell) this.setupShellOutput(sessionId, shell)
-      } catch {
-        this.sendError(ws, 'Failed to create shell', sessionId)
-        return
-      }
+    // 只在首次设置 sessionId
+    if (!ws.sessionId) {
+      ws.sessionId = sessionId
+      this.sessionToWs.set(sessionId, ws)
     }
 
-    sshManager.sendInput(sessionId, data)
+    // 如果 shell 已存在，直接发送输入（最快路径）
+    if (session.shell) {
+      sshManager.sendInput(sessionId, data)
+      return
+    }
+
+    // 创建 shell
+    try {
+      const shell = await sshManager.createShell(sessionId)
+      if (shell) this.setupShellOutput(sessionId, shell)
+      sshManager.sendInput(sessionId, data)
+    } catch {
+      this.sendError(ws, 'Failed to create shell', sessionId)
+    }
   }
 
   private async handleResize(ws: WebSocketClient, message: ClientMessage): Promise<void> {

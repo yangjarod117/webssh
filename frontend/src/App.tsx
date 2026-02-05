@@ -55,7 +55,11 @@ function AppContent() {
   const shouldShowWorkspace = tabs.length > 0 && !showConnectionPage
 
   // 检查是否需要访问密码（后端会自动检查 cookie）
+  // 只在首次加载时检查一次
   useEffect(() => {
+    // 避免重复检查
+    if (accessVerified !== null) return
+    
     const checkAccess = async () => {
       try {
         const res = await fetch('/api/access/check', {
@@ -75,7 +79,7 @@ function AppContent() {
     }
     
     checkAccess()
-  }, [])
+  }, [accessVerified])
 
   // 处理密码验证
   const handleAccessVerify = useCallback(async (password: string, remember: boolean): Promise<boolean> => {

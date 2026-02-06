@@ -6,7 +6,7 @@ import { createLogEntry, addLog as addLogToList, clearLogs as clearLogsList } fr
 import type { FileItem, LogEntry, SessionState } from '../types'
 
 // 当前版本号
-const CURRENT_VERSION = '1.1.4'
+const CURRENT_VERSION = '1.1.5'
 
 // 版本检测组件
 const VersionBadge = memo(() => {
@@ -147,26 +147,26 @@ export function WorkspacePage({ session, sessions, onDisconnect, onAddConnection
       <GlowAccents />
 
       {/* 顶部工具栏 */}
-      <header className="flex items-center justify-between px-4 py-2 mx-2 mt-2 rounded-xl backdrop-blur-md shrink-0 relative z-[50] bg-surface border border-border">
-        <div className="flex items-center gap-3">
-          <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg">
-            <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+      <header className="flex items-center justify-between px-2 md:px-4 py-2 mx-1 md:mx-2 mt-1 md:mt-2 rounded-xl backdrop-blur-md shrink-0 relative z-[50] bg-surface border border-border">
+        <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
+          <div className="w-6 h-6 md:w-7 md:h-7 rounded-lg md:rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg flex-shrink-0">
+            <svg className="w-3 h-3 md:w-3.5 md:h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
           </div>
-          <div className="flex items-center gap-2">
-            <span className={`w-2 h-2 rounded-full ${currentSession.status === 'connected' ? 'bg-success' : 'bg-error'}`} />
-            <span className="text-sm text-text">{currentSession.config.username}@{currentSession.config.host}:{currentSession.config.port}</span>
+          <div className="flex items-center gap-1 md:gap-2 min-w-0">
+            <span className={`w-2 h-2 rounded-full flex-shrink-0 ${currentSession.status === 'connected' ? 'bg-success' : 'bg-error'}`} />
+            <span className="text-xs md:text-sm text-text truncate">{currentSession.config.username}@{currentSession.config.host}</span>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <VersionBadge />
-          <button onClick={onAddConnection} className="p-2 rounded-xl backdrop-blur-sm bg-surface hover:bg-primary/20 text-text-secondary hover:text-success transition-all border border-border" title="添加新连接">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+        <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
+          <div className="hidden sm:block"><VersionBadge /></div>
+          <button onClick={onAddConnection} className="p-1.5 md:p-2 rounded-lg md:rounded-xl backdrop-blur-sm bg-surface hover:bg-primary/20 text-text-secondary hover:text-success transition-all border border-border" title="添加新连接">
+            <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
           </button>
-          <button onClick={() => setShowLogPanel(!showLogPanel)} className={`p-2 rounded-xl backdrop-blur-sm transition-all border ${showLogPanel ? 'bg-primary/30 text-white border-primary/50' : 'bg-surface hover:bg-primary/20 text-text-secondary border-border'}`} title="日志面板">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+          <button onClick={() => setShowLogPanel(!showLogPanel)} className={`hidden sm:flex p-1.5 md:p-2 rounded-lg md:rounded-xl backdrop-blur-sm transition-all border ${showLogPanel ? 'bg-primary/30 text-white border-primary/50' : 'bg-surface hover:bg-primary/20 text-text-secondary border-border'}`} title="日志面板">
+            <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
           </button>
-          <ThemeSelector />
-          <button onClick={() => { addLog(activeSessionId, { level: 'info', category: 'connection', message: `断开连接: ${currentSession.config.host}` }); onDisconnect() }} className="px-3 py-1.5 rounded-xl backdrop-blur-sm bg-error/15 text-error hover:bg-error/25 transition-all text-sm border border-error/30">断开连接</button>
+          <div className="hidden sm:block"><ThemeSelector /></div>
+          <button onClick={() => { addLog(activeSessionId, { level: 'info', category: 'connection', message: `断开连接: ${currentSession.config.host}` }); onDisconnect() }} className="px-2 md:px-3 py-1 md:py-1.5 rounded-lg md:rounded-xl backdrop-blur-sm bg-error/15 text-error hover:bg-error/25 transition-all text-xs md:text-sm border border-error/30">断开</button>
         </div>
       </header>
 
@@ -196,14 +196,14 @@ export function WorkspacePage({ session, sessions, onDisconnect, onAddConnection
 
       {/* 文件编辑器弹窗 */}
       {editorState && openFiles.has(editorState.fileId) && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="bg-surface/95 backdrop-blur-md rounded-2xl shadow-2xl border border-white/10 overflow-hidden" style={{ width: '80vw', height: '80vh', maxWidth: '1200px', maxHeight: '800px' }}>
-            <div className="flex items-center justify-between px-4 py-2 bg-surface/50 border-b border-white/5">
-              <div className="flex items-center gap-2">
-                <svg className="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                <span className="text-sm font-medium text-text truncate max-w-md">{editorState.fileId}</span>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-2 md:p-4">
+          <div className="bg-surface/95 backdrop-blur-md rounded-xl md:rounded-2xl shadow-2xl border border-white/10 overflow-hidden w-full h-full md:w-[80vw] md:h-[80vh] md:max-w-[1200px] md:max-h-[800px]">
+            <div className="flex items-center justify-between px-3 md:px-4 py-2 bg-surface/50 border-b border-white/5">
+              <div className="flex items-center gap-2 min-w-0 flex-1">
+                <svg className="w-4 h-4 text-primary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                <span className="text-xs md:text-sm font-medium text-text truncate">{editorState.fileId}</span>
               </div>
-              <button onClick={() => { closeFile(editorState.fileId); setEditorState(null) }} className="p-1.5 rounded-xl hover:bg-white/10 text-text-secondary hover:text-text transition-colors" title="关闭">
+              <button onClick={() => { closeFile(editorState.fileId); setEditorState(null) }} className="p-2 md:p-1.5 rounded-lg md:rounded-xl hover:bg-white/10 text-text-secondary hover:text-text transition-colors flex-shrink-0 ml-2" title="关闭">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>

@@ -231,7 +231,7 @@ export function ConnectionPage({ onConnect, onBack }: ConnectionPageProps) {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.3, delay: 0.1 }}
-            className="rounded-xl p-4 backdrop-blur-md max-h-[40vh] lg:max-h-none overflow-auto"
+            className="rounded-xl p-4 backdrop-blur-md"
             style={{
               background: isLight ? 'rgba(255, 255, 255, 0.7)' : 'rgba(17, 24, 39, 0.5)',
               border: `1px solid ${isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(0, 212, 255, 0.15)'}`,

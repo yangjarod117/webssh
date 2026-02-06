@@ -40,12 +40,12 @@ function EditConnectionDialog({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="bg-surface rounded-xl shadow-2xl border border-border p-6 w-full max-w-md"
+        className="bg-surface rounded-xl shadow-2xl border border-border p-4 md:p-6 w-full max-w-md max-h-[90vh] overflow-y-auto"
       >
         <h3 className="text-lg font-semibold mb-4">编辑连接</h3>
         
@@ -279,11 +279,11 @@ function QuickConnectDialog({
   // 如果正在加载已保存的凭据，显示加载状态
   if (isLoadingCredentials) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-surface rounded-xl shadow-2xl border border-border p-6 w-full max-w-md text-center"
+          className="bg-surface rounded-xl shadow-2xl border border-border p-4 md:p-6 w-full max-w-md text-center"
         >
           <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4" />
           <p className="text-text">正在连接 {connection.name}...</p>
@@ -299,12 +299,12 @@ function QuickConnectDialog({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="bg-surface rounded-xl shadow-2xl border border-border p-6 w-full max-w-md"
+        className="bg-surface rounded-xl shadow-2xl border border-border p-4 md:p-6 w-full max-w-md max-h-[90vh] overflow-y-auto"
       >
         <h3 className="text-lg font-semibold mb-4">快速连接</h3>
         
